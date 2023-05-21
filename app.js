@@ -16,11 +16,11 @@ const quoteRoute = require("./routes/quoteRoute")
 
 const userRoute = require("./routes/userRoute");
 
-// const commentRoute = require('./routes/commentRoute');
+const commentRoute = require('./routes/commentRoute');
 
-// const likeRoute = require('./routes/likesRoute');
+const likeRoute = require('./routes/likeRoute');
 
-// const followerRoute = require('./routes/followerRoute');
+const followerRoute = require('./routes/followerRoute');
 
 const path = require("path");
 
@@ -59,10 +59,10 @@ app.use("/register", registerRoute);
 app.use("/userlogin", loginRoute);
 app.use("/quote", quoteRoute);
 app.use("/user", userRoute);
-// app.use("/comment", commentRoute);
-// app.use("/like", likeRoute);
-// app.use("/follow", followerRoute);
-// app.use("/sendemail", emailRoute);
+app.use("/comment", commentRoute);
+app.use("/like", likeRoute);
+app.use("/follow", followerRoute);
+app.use("/sendemail", emailRoute);
 
 
 // app.post("/verifytoken", async(req, res)=>{
