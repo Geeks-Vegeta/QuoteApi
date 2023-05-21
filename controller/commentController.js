@@ -1,7 +1,7 @@
 
 const commentModel = require('../models/commentModel');
 
-const postModel = require('../models/postModel');
+const postModel = require('../models/quoteModel');
 
 
 // add comment

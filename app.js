@@ -62,7 +62,7 @@ app.use("/user", userRoute);
 app.use("/comment", commentRoute);
 app.use("/like", likeRoute);
 app.use("/follow", followerRoute);
-app.use("/sendemail", emailRoute);
+// app.use("/sendemail", emailRoute);
 
 
 // app.post("/verifytoken", async(req, res)=>{
