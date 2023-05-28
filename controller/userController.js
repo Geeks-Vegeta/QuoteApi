@@ -127,13 +127,7 @@ exports.currentUser=async(req, res)=>{
     try {
         
         const user = await userModel.findOne({_id:user_id}, '-password').populate('followers', '_id profile_pic username following followers', 'User').populate('following', '_id profile_pic username', 'User');
-        const getRes = await client.get("currentuser");
-        if (getRes){
-            return res.send(JSON.parse(getRes));
-        }else{
-            await client.set("currentuser", JSON.stringify(user),'EX',3600); 
-            res.status(200).send(user);
-        }
+        res.send(user);
 
     } catch (error) {
         console.log(error);
