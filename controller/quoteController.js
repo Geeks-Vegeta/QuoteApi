@@ -4,7 +4,7 @@ const postModel = require("../models/quoteModel");
 // object
 var ObjectId = require('mongoose').Types.ObjectId; 
 
-
+const {client} = require("../redis-connection/connection_redis")
 
 // create post
 exports.createPost = async(req, res) => {
@@ -153,9 +153,14 @@ exports.getRandomPosts=async(req, res)=>{
     try {
        
         let randnumber = Math.floor(Math.random() * 10);
-        const allposts = await postModel.find().limit(4).skip(randnumber);
-
-        res.send(allposts);
+        const allposts = await postModel.find().limit(20).skip(randnumber);
+        const getRes = await client.get("randompost");
+        if (getRes){
+            return res.send(JSON.parse(getRes));
+        }else{
+            await client.set("randompost", JSON.stringify(allposts),'EX',3600); 
+            return res.status(200).send(allposts);
+        }
 
         
     } catch (error) {
@@ -170,7 +175,13 @@ exports.getAllRecentPosts=async(req, res)=>{
 
     try {
         const allposts = await postModel.find().populate('user').sort({postDateUpdate:-1});
-        res.status(200).send(allposts);
+        const getRes = await client.get("recentposts");
+        if (getRes){
+            return res.send(JSON.parse(getRes));
+        }else{
+            await client.set("recentposts", JSON.stringify(allposts),'EX',3600); 
+            return res.status(200).send(allposts);
+        }
         
     } catch (error) {
         console.log(error)
@@ -187,7 +198,13 @@ exports.getAllCurrentUserPosts=async(req, res)=>{
     try {
         let user_id = req.name.id;
         const allposts = await postModel.find({user:user_id}).sort({postDateUpdate:-1});
-        res.status(200).send(allposts);
+        const getRes = await client.get("currentuserquotes");
+        if (getRes){
+            return res.send(JSON.parse(getRes));
+        }else{
+            await client.set("currentuserquotes", JSON.stringify(allposts)); 
+            return res.status(200).send(allposts);
+        }
         
     } catch (error) {
         console.log(error)
