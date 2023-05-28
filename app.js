@@ -24,6 +24,9 @@ const followerRoute = require('./routes/followerRoute');
 
 const path = require("path");
 
+const scrapQuote = require("./models/ScrapQuoteModel")
+
+var cron = require('node-cron');
 
 //importing cors
 const cors = require('cors');
@@ -31,9 +34,10 @@ const cors = require('cors');
 
 const dotenv = require('dotenv');
 // const emailRoute = require('./routes/emailRoute');
-
+const { client } = require('./redis-connection/connection_redis');
 dotenv.config();
 
+// databases connections
 require("./models/connections")
 
 
@@ -64,6 +68,35 @@ app.use("/like", likeRoute);
 app.use("/follow", followerRoute);
 // app.use("/sendemail", emailRoute);
 
+
+
+const getRandomQuote=async()=>{
+
+  const numItems = await scrapQuote.estimatedDocumentCount();
+   const rand = Math.floor(Math.random() * numItems);
+   const randomItem = await scrapQuote.findOne().skip(rand);
+   await client.set("quoteofday", JSON.stringify(randomItem)); 
+}
+
+
+// 0 0 0 * * * at mid night 12 am
+cron.schedule('0 0 0 * * *', () => {
+    getRandomQuote()
+});
+
+
+app.get("/quoteofday",async(req, res)=>{
+  try {
+       const getRes = await client.get("quoteofday");
+        if (getRes){
+            return res.send(JSON.parse(getRes));
+        }else{
+          return res.json({"message":"No data yet"})
+        }
+  } catch (error) {
+    console.log(error);
+  }
+})
 
 // app.post("/verifytoken", async(req, res)=>{
 
