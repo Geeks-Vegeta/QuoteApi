@@ -42,6 +42,9 @@ const userSchema = mongoose.Schema({
     linkedIn_link:{
         type:String,
     },
+    github_link:{
+        type:String,
+    },
     facebook_link:{
         type:String
     },
