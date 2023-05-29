@@ -24,9 +24,11 @@ const followerRoute = require('./routes/followerRoute');
 
 const path = require("path");
 
+const todayquote=require("./models/todayModel");
+
 const scrapQuote = require("./models/ScrapQuoteModel")
 
-var cron = require('node-cron');
+const cron = require('node-cron');
 
 //importing cors
 const cors = require('cors');
@@ -75,24 +77,21 @@ const getRandomQuote=async()=>{
   const numItems = await scrapQuote.estimatedDocumentCount();
    const rand = Math.floor(Math.random() * numItems);
    const randomItem = await scrapQuote.findOne().skip(rand);
-   await client.set("quoteofday", JSON.stringify(randomItem)); 
+   await todayquote.deleteMany({});
+   await todayquote.insertMany([randomItem]);
 }
 
 
 // 0 0 0 * * * at mid night 12 am
-cron.schedule('0 0 0 * * *', () => {
+cron.schedule('0 0 * * *', () => {
     getRandomQuote()
 });
 
 
 app.get("/quoteofday",async(req, res)=>{
   try {
-       const getRes = await client.get("quoteofday");
-        if (getRes){
-            return res.send(JSON.parse(getRes));
-        }else{
-          return res.json({"message":"No data yet"})
-        }
+       const getRes = await todayquote.findOne({today:true});
+       return res.send(getRes)
   } catch (error) {
     console.log(error);
   }
