@@ -7,7 +7,7 @@ const todayQuoteSchema = mongoose.Schema({
     author:{
         type:String,
     },
-    like:{
+    likes:{
         type:String,
     },
     image:{
