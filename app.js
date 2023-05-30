@@ -2,8 +2,6 @@ const express = require('express');
 
 let app = express();
 
-var session = require('express-session')
-
 
 //importing cookie parser
 const cookieParser = require('cookie-parser')
@@ -52,13 +50,6 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
-app.set('trust proxy', 1) // trust first proxy
-app.use(session({
-  secret: process.env.SESSIONSECRET||"sdfjsdjfj",
-  resave: false,
-  saveUninitialized: true,
-}))
-
 
 // routes
 app.use("/register", registerRoute);
@@ -83,8 +74,9 @@ const getRandomQuote=async()=>{
 
 
 // 0 0 0 * * * at mid night 12 am
-cron.schedule('0 0 * * *', () => {
+cron.schedule('* * * * *', () => {
     getRandomQuote()
+    console.log("quote changed")
 });
 
 
