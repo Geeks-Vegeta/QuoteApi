@@ -21,7 +21,7 @@ const userSchema = mongoose.Schema({
     },
     profile_pic:{
         type:String,
-        default:"https://res.cloudinary.com/getcomix/image/upload/v1645970189/public%20blog/b8mqpjx2r3uzzxlwg78g.jpg"
+        default:"https://res.cloudinary.com/getcomix/image/upload/v1686155630/quoteser/kxnmoyb8ns76izhvelph.jpg"
     },
     education:{
         type:String
@@ -55,7 +55,7 @@ const userSchema = mongoose.Schema({
     },
     background_image:{
         type:String,
-        default:"https://res.cloudinary.com/getcomix/image/upload/v1645970269/public%20blog/uatvmpk2b9347yhvxv9k.jpg"
+        default:"https://res.cloudinary.com/getcomix/image/upload/v1686155883/quoteser-background/yb7oz0mbt4oaeycczrsz.jpg"
     },
     mobile_number:{
         type:String
