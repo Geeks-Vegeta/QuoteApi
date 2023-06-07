@@ -74,7 +74,7 @@ const getRandomQuote=async()=>{
 
 
 // 0 0 0 * * * at mid night 12 am
-cron.schedule('* * 12 * *', () => {
+cron.schedule('0 0 12 * *', () => {
     getRandomQuote();
     console.log("quote changed");
 });
