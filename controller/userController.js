@@ -97,19 +97,15 @@ exports.deleteUser=async(req, res)=>{
 // update userpassword
 exports.changeUserPassword=async(req, res)=>{
 
-    let user = req.session.user;
+    let user_id = req.name.id;
     let {password} = req.body;
 
     try {
 
-        const loginuser = await userModel.findOne({email:user});
-        
-        if(!loginuser) return res.status(401).json({"message": "Invalid user"})
-        
         let salt = await bcrypt.genSaltSync(13);
         let hashpassword = await bcrypt.hash(password ,salt)
 
-        await userModel.findByIdAndUpdate({_id:loginuser._id}, {$set:{password:hashpassword}});
+        await userModel.findByIdAndUpdate({_id:user_id}, {$set:{password:hashpassword}});
         res.status(200).json({"message": "Password Changed Successfully"});
         
     } catch (error) {
@@ -148,3 +144,25 @@ exports.getUserById = async(req, res)=>{
         
     }
 }
+
+// check password
+exports.checkPassword=async(req, res)=>{
+    let {user_id} = req.params;
+    let {password} = req.body;
+
+    try {
+
+        let user = await userModel.findOne({_id:user_id});
+
+        let isValidPassword = await bcrypt.compare(password, user.password);
+        if(!isValidPassword) return res.status(401).json({"message": "Invalid Password"});
+
+        res.status(200).send(userdata);
+        
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
+
