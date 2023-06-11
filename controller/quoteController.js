@@ -175,13 +175,13 @@ exports.getAllRecentPosts=async(req, res)=>{
 
     try {
         const allposts = await quoteModel.find().populate('user').sort({postDateUpdate:-1});
-        const getRes = await client.get("recentposts");
-        if (getRes){
-            return res.send(JSON.parse(getRes));
-        }else{
-            await client.set("recentposts", JSON.stringify(allposts),'EX',3600); 
+        // const getRes = await client.get("recentposts");
+        // if (getRes){
+        //     return res.send(JSON.parse(getRes));
+        // }else{
+        //     await client.set("recentposts", JSON.stringify(allposts),'EX',3600); 
             return res.status(200).send(allposts);
-        }
+        // }
         
     } catch (error) {
         console.log(error)
