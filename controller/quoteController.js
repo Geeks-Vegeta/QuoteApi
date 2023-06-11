@@ -1,5 +1,5 @@
 
-const postModel = require("../models/quoteModel");
+const quoteModel = require("../models/quoteModel");
 
 // object
 var ObjectId = require('mongoose').Types.ObjectId; 
@@ -14,11 +14,11 @@ exports.createPost = async(req, res) => {
     const _id = req.name.id;
 
     // title validation
-    const isQuotePresent = await postModel.findOne({quote:quote});
+    const isQuotePresent = await quoteModel.findOne({quote:quote});
     if(isQuotePresent) return res.json({"message":"Quote Already Present"});
 
 
-    const new_post = postModel({
+    const new_post = quoteModel({
         quote:quote,
         tags:tags,
         user:_id
@@ -42,14 +42,14 @@ exports.deletePost = async(req, res)=>{
     let {id} = req.params;
     let user_id = req.name.id;
 
-    const isValidPost =await postModel.findOne({_id:id});
+    const isValidPost =await quoteModel.findOne({_id:id});
 
     if(!isValidPost) return res.json({"message": "This post does not exists"});
 
 
     try {
         if(user_id == isValidPost.user){
-           await postModel.deleteOne({_id:id});
+           await quoteModel.deleteOne({_id:id});
            res.json({"message":"deleted successfully"});
     
         }else{
@@ -70,14 +70,14 @@ exports.updatePost = async(req, res)=>{
     let {id} = req.params;
     let user_id = req.name.id;
 
-    const isValidPost = await postModel.findOne({_id:id});
+    const isValidPost = await quoteModel.findOne({_id:id});
 
     if(!isValidPost) return res.json({"message": "This post does not exists"});
 
     try {
 
         if(user_id == isValidPost.user){
-            const update_post = await postModel.findByIdAndUpdate({_id:isValidPost._id}, req.body,{new:true});
+            const update_post = await quoteModel.findByIdAndUpdate({_id:isValidPost._id}, req.body,{new:true});
             res.send(update_post)
      
         }else{
@@ -99,7 +99,7 @@ exports.getUserPostsById=async(req, res)=>{
 
     try {
 
-        const userdata = await postModel.find({user:id}).sort({postDateUpdate:-1});;
+        const userdata = await quoteModel.find({user:id}).sort({postDateUpdate:-1});;
         res.status(200).send(userdata);
         
     } catch (error) {
@@ -113,7 +113,7 @@ exports.getMostLikedPosts=async(req, res)=>{
 
     try {
 
-        const allposts = await postModel.find().limit(4).sort({like:-1});
+        const allposts = await quoteModel.find().limit(4).sort({like:-1});
         res.send(allposts);
         
     } catch (error) {
@@ -125,7 +125,7 @@ exports.getMostLikedPosts=async(req, res)=>{
 exports.getMostCommentedPosts=async(req, res)=>{
 
     try {
-        const allposts = await postModel.find().limit(4).sort({comments:-1});
+        const allposts = await quoteModel.find().limit(4).sort({comments:-1});
         res.send(allposts);
         
     } catch (error) {
@@ -138,7 +138,7 @@ exports.getMostCommentedPosts=async(req, res)=>{
 exports.getSingleRandomPosts=async(req, res)=>{
 
     try {
-        const allposts = await postModel.find().populate('user').limit(4);
+        const allposts = await quoteModel.find().populate('user').limit(4);
         res.send(allposts);
         
     } catch (error) {
@@ -153,7 +153,7 @@ exports.getRandomPosts=async(req, res)=>{
     try {
        
         let randnumber = Math.floor(Math.random() * 10);
-        const allposts = await postModel.find().limit(20).skip(randnumber);
+        const allposts = await quoteModel.find().limit(20).skip(randnumber);
         const getRes = await client.get("randompost");
         if (getRes){
             return res.send(JSON.parse(getRes));
@@ -174,7 +174,7 @@ exports.getRandomPosts=async(req, res)=>{
 exports.getAllRecentPosts=async(req, res)=>{
 
     try {
-        const allposts = await postModel.find().populate('user').sort({postDateUpdate:-1});
+        const allposts = await quoteModel.find().populate('user').sort({postDateUpdate:-1});
         const getRes = await client.get("recentposts");
         if (getRes){
             return res.send(JSON.parse(getRes));
@@ -197,7 +197,7 @@ exports.getAllCurrentUserPosts=async(req, res)=>{
 
     try {
         let user_id = req.name.id;
-        const allposts = await postModel.find({user:user_id}).sort({postDateUpdate:-1});
+        const allposts = await quoteModel.find({user:user_id}).sort({postDateUpdate:-1});
         const getRes = await client.get("currentuserquotes");
         if (getRes){
             return res.send(JSON.parse(getRes));
@@ -219,7 +219,7 @@ exports.getPostByTitle=async(req, res)=>{
     let {_id} = req.query
 
     try {
-        const allpost = await postModel.findOne({_id:_id}).populate('user').populate({path:'comments',options:{
+        const allpost = await quoteModel.findOne({_id:_id}).populate('user').populate({path:'comments',options:{
             sort:{
                 "commentDateUpdate":-1
             },populate:{
