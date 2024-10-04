@@ -1,23 +1,22 @@
-const commentRoute = require("express").Router();
-
-const verifyUser = require("../verifyUser");
-
+const router = require("express").Router();
+const authenticateUser = require("../middleware/authenticate");
+const { rateLimiter } = require("../middleware/ratelimit");
 const commentController = require("../controllers/commentController");
 
-commentRoute.post(
-  "/addcomment/:postid",
-  verifyUser,
+router.post(
+  "/addcomment",
+  [authenticateUser, rateLimiter(20)],
   commentController.postComment
 );
-commentRoute.put(
-  "/updatecomment/:comment_id",
-  verifyUser,
+router.put(
+  "/updatecomment",
+  [authenticateUser, rateLimiter(20)],
   commentController.updateComment
 );
-commentRoute.delete(
-  "/deletecomment/:comment_id/:post_id",
-  verifyUser,
+router.delete(
+  "/deletecomment",
+  [authenticateUser, rateLimiter(20)],
   commentController.deleteComment
 );
 
-module.exports = commentRoute;
+module.exports = router;

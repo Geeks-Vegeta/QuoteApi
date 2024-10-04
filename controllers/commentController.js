@@ -1,80 +1,101 @@
-const commentModel = require("../models/commentModel");
+const commentService = require("../services/commentService");
+const sendResponse = require("../utils/response/send_response");
+const ClientError = require("../utils/exceptions/client_error");
+const ServerError = require("../utils/exceptions/server_error");
+const logger = require("../utils/exceptions/logger");
 
-const postModel = require("../models/quoteModel");
-
-// add comment
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.postComment = async (req, res) => {
-  let { postid } = req.params;
-  let userid = req.name.id;
-  let { comment } = req.body;
+  let userId = req.name.id;
+  let { comment, postId } = req.body;
 
   try {
-    let posts = await postModel.findOne({ _id: postid });
+    let posts = await commentService.checkPost(postId);
+    if (!posts) throw new ClientError(404, "Post does not exists");
 
-    let commenting = commentModel({
+    let commentData = {
       comment: comment,
-      post: postid,
-      user: userid,
-    });
-    await commenting.save();
-    await posts.comments.push(commenting);
+      post: postId,
+      user: userId,
+    };
+    let comments = await commentService.createComment(commentData);
+
+    await posts.comments.push(comments);
     await posts.save();
-    res.status(200).send(commenting);
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, comments);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// updateComment
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.updateComment = async (req, res) => {
-  let userid = req.name.id;
-  let { comment_id } = req.params;
+  let userId = req.name.id;
+  let { commentId, comment } = req.body;
 
   try {
-    let isusercomment = await commentModel.findOne({ _id: comment_id });
-    if (!isusercomment)
-      return res.status(404).json({ message: "This comment does not exists" });
-
-    if (isusercomment.user == userid) {
-      let comment = await commentModel.findByIdAndUpdate(
-        { _id: comment_id },
-        req.body,
-        { new: true }
-      );
-      res.status(200).send(comment);
-    } else {
-      return res
-        .status(401)
-        .json({ message: "You are not authorised to comment" });
+    let userComment = await commentService.checkComment(commentId);
+    if (!userComment) {
+      throw new ClientError(404, "This comment does not exists");
     }
-  } catch (error) {
-    console.log(error);
+
+    if (userComment.user == userId) {
+      let update = await updateComment(commentId, comment);
+      return sendResponse(req, res, next, update);
+    } else {
+      throw new ClientError(403, "You are not authorised to comment");
+    }
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// delete comment
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.deleteComment = async (req, res) => {
-  let userid = req.name.id;
-  let { comment_id, post_id } = req.params;
+  let userId = req.name.id;
+  let { commentId, postId } = req.body;
 
   try {
-    let isusercomment = await commentModel.findOne({ _id: comment_id });
-    if (!isusercomment)
-      return res.status(404).json({ message: "This comment does not exists" });
+    let userComment = await commentService.checkComment(commentId);
+    if (!userComment) {
+      throw new ClientError(404, "This comment does not exists");
+    }
 
-    if (isusercomment.user == userid) {
-      await commentModel.findByIdAndDelete({ _id: comment_id });
-      await postModel.findByIdAndUpdate(
-        { _id: post_id },
-        { $pull: { comments: comment_id } }
-      );
-      res.json({ message: "Deleted successfully" });
+    if (isusercomment.user == userId) {
+      await commentService.deleteComment(commentId);
+      await commentService.deleteCommentPost(postId, commentId);
+      return sendResponse(req, res, next, "Comment Deleted successfully");
     } else {
-      return res
-        .status(401)
-        .json({ message: "You are not authorised to comment" });
+      throw new ClientError(403, "You are not authorised to comment");
     }
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
