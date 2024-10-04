@@ -1,12 +1,13 @@
 const express = require("express");
+require("express-async-errors");
 
 let app = express();
 
 //importing cookie parser
 const cookieParser = require("cookie-parser");
+const errorHandler = require("./utils/exceptions/error_handler");
 
-const registerRoute = require("./routes/registerRoute");
-const loginRoute = require("./routes/loginRoute");
+const authRoute = require("./routes/authRoute");
 const quoteRoute = require("./routes/quoteRoute");
 const userRoute = require("./routes/userRoute");
 const commentRoute = require("./routes/commentRoute");
@@ -37,8 +38,7 @@ app.use(function (req, res, next) {
 });
 
 // routes
-app.use("/register", registerRoute);
-app.use("/userlogin", loginRoute);
+app.use("/api/auth", authRoute);
 app.use("/quote", quoteRoute);
 app.use("/user", userRoute);
 app.use("/comment", commentRoute);
@@ -66,6 +66,22 @@ app.get("/quoteofday", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+});
+
+app.use(errorHandler);
+app.use((err, req, res, next) => {
+  // Send a JSON response with the error message and status code
+  const statusCode = err.status || 500;
+  res.status(statusCode).json({
+    data: {
+      item: {},
+    },
+    status: {
+      type: "error",
+      message: "Something went wrong. Please try again later.",
+      description: "Something went wrong",
+    },
+  });
 });
 
 //initial path

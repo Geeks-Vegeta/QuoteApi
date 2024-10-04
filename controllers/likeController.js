@@ -1,5 +1,4 @@
 const postModel = require("../models/quoteModel");
-
 const likeModel = require("../models/likeModel");
 
 exports.likePost = async (req, res) => {

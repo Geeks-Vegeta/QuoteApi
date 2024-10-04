@@ -1,10 +1,8 @@
 const router = require("express").Router();
+const authController = require("../controllers/authController");
 
-const loginController = require("../controllers/loginController");
-const registerController = require("../controllers/registerController");
-
-router.post("/register", registerController.registerUser);
-router.post("/login", loginController.loginUser);
+router.post("/register", authController.registerUser);
+router.post("/login", authController.loginUser);
 
 router.get("/logout", (req, res) => {
   res.clearCookie("Authorization", { path: "/" });
