@@ -6,36 +6,21 @@ let app = express();
 const cookieParser = require("cookie-parser");
 
 const registerRoute = require("./routes/registerRoute");
-
 const loginRoute = require("./routes/loginRoute");
-
 const quoteRoute = require("./routes/quoteRoute");
-
 const userRoute = require("./routes/userRoute");
-
 const commentRoute = require("./routes/commentRoute");
-
 const likeRoute = require("./routes/likeRoute");
-
 const followerRoute = require("./routes/followerRoute");
-
-const path = require("path");
-
 const todayquote = require("./models/todayModel");
-
 const scrapQuote = require("./models/ScrapQuoteModel");
-
 const cron = require("node-cron");
 
 //importing cors
 const cors = require("cors");
 
 const dotenv = require("dotenv");
-// const emailRoute = require('./routes/emailRoute');
-const { client } = require("./redis-connection/connection_redis");
 dotenv.config();
-
-// databases connections
 require("./models/connections");
 
 // middleware
@@ -83,23 +68,6 @@ app.get("/quoteofday", async (req, res) => {
     console.log(error);
   }
 });
-
-// app.post("/verifytoken", async(req, res)=>{
-
-//     let {token} = req.body;
-
-//     try {
-
-//         if(token !== req.session.token){
-//             return res.status(401).json({"message": "Invalid Token"});
-//         }
-//         res.status(200).json({"message": "Token Verified"});
-
-//     } catch (error) {
-//         console.log(error);
-//     }
-
-// })
 
 //initial path
 app.get("/", function (req, res) {
