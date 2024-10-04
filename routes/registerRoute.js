@@ -1,8 +1,7 @@
-const registerRoute = require('express').Router();
+const registerRoute = require("express").Router();
 
-const registerController = require('../controller/registerController');
+const registerController = require("../controller/registerController");
 
+registerRoute.post("/", registerController.registerUser);
 
-registerRoute.post("/", registerController.registerUser)
-
-module.exports=registerRoute;
+module.exports = registerRoute;

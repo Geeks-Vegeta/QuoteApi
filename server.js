@@ -1,7 +1,7 @@
-const app = require('./app');
+const app = require("./app");
 
-//importing dotenv 
-const dotenv = require('dotenv');
+//importing dotenv
+const dotenv = require("dotenv");
 
 //configuring dotenv
 dotenv.config();
@@ -10,8 +10,8 @@ dotenv.config();
 const port = process.env.PORT || 5000;
 
 // running port
-app.listen(port, ()=>{
-    console.log(`connected to port ${port}`);
-})
+app.listen(port, () => {
+  console.log(`connected to port ${port}`);
+});
 
-module.exports=app;
+module.exports = app;
