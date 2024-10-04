@@ -22,7 +22,7 @@ const cors = require("cors");
 
 const dotenv = require("dotenv");
 dotenv.config();
-require("./models/connections");
+require("./models/connections").connect();
 
 // middleware
 app.use(express.json());
