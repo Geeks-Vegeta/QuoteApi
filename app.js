@@ -84,12 +84,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-//initial path
-app.get("/", function (req, res) {
-  res.json({ message: "this is initial route of blogging api" });
+app.get("/ping", function (req, res) {
+  res.json({ message: "pong" });
 });
 
-const handleNotFound = rateLimiter(5, 60 * 1000); // Limit to 5 requests per minute
+const handleNotFound = rateLimiter(5, 60 * 1000);
 
 app.use(
   (req, res, next) => {
