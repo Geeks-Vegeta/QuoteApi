@@ -16,6 +16,7 @@ const followerRoute = require("./routes/followerRoute");
 const todayquote = require("./models/todayModel");
 const scrapQuote = require("./models/ScrapQuoteModel");
 const cron = require("node-cron");
+const { rateLimiter } = require("./middleware/ratelimit");
 
 //importing cors
 const cors = require("cors");
@@ -70,7 +71,6 @@ app.get("/quoteofday", async (req, res) => {
 
 app.use(errorHandler);
 app.use((err, req, res, next) => {
-  // Send a JSON response with the error message and status code
   const statusCode = err.status || 500;
   res.status(statusCode).json({
     data: {
@@ -88,5 +88,27 @@ app.use((err, req, res, next) => {
 app.get("/", function (req, res) {
   res.json({ message: "this is initial route of blogging api" });
 });
+
+const handleNotFound = rateLimiter(5, 60 * 1000); // Limit to 5 requests per minute
+
+app.use(
+  (req, res, next) => {
+    res.status(404);
+    next();
+  },
+  handleNotFound,
+  (req, res) => {
+    res.json({
+      data: {
+        item: {},
+      },
+      status: {
+        type: "error",
+        message: "This route does not exist.",
+        description: "Something went wrong",
+      },
+    });
+  }
+);
 
 module.exports = app;
