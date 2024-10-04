@@ -1,6 +1,6 @@
 const quoteRoute = require("express").Router();
 
-const quoteController = require("../controller/quoteController");
+const quoteController = require("../controllers/quoteController");
 
 const verifyUser = require("../verifyUser");
 

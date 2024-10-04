@@ -44,7 +44,6 @@ app.use("/user", userRoute);
 app.use("/comment", commentRoute);
 app.use("/like", likeRoute);
 app.use("/follow", followerRoute);
-// app.use("/sendemail", emailRoute);
 
 const getRandomQuote = async () => {
   const numItems = await scrapQuote.estimatedDocumentCount();

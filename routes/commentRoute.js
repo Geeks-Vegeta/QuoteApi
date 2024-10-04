@@ -2,7 +2,7 @@ const commentRoute = require("express").Router();
 
 const verifyUser = require("../verifyUser");
 
-const commentController = require("../controller/commentController");
+const commentController = require("../controllers/commentController");
 
 commentRoute.post(
   "/addcomment/:postid",

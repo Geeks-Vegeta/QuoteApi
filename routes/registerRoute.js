@@ -1,6 +1,6 @@
 const registerRoute = require("express").Router();
 
-const registerController = require("../controller/registerController");
+const registerController = require("../controllers/registerController");
 
 registerRoute.post("/", registerController.registerUser);
 
