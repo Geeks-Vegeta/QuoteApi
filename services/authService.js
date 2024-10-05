@@ -3,6 +3,7 @@ const userModel = require("../models/userModel");
 /**
  *
  * @param {*} userEmail
+ * @returns
  */
 const checkEmail = async (userEmail) => {
   let user = await userModel.findOne({ email: userEmail });

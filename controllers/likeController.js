@@ -1,48 +1,62 @@
 const postModel = require("../models/quoteModel");
-const likeModel = require("../models/likeModel");
+const sendResponse = require("../utils/response/send_response");
+const ClientError = require("../utils/exceptions/client_error");
+const ServerError = require("../utils/exceptions/server_error");
+const logger = require("../utils/exceptions/logger");
+const likeService = require("../services/likeService");
 
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.likePost = async (req, res) => {
-  let user_id = req.name.id;
-
-  let { post_id } = req.body;
-
-  let posts = await postModel.findOne({ _id: post_id });
+  let userId = req.name.id;
+  let { postId } = req.body;
+  let posts = await postModel.findOne({ _id: postId });
 
   try {
-    let liked = likeModel({
-      user: user_id,
-      post: post_id,
-    });
-    await liked.save();
-    await postModel.findByIdAndUpdate({ _id: post_id }, { $inc: { like: 1 } });
-    await posts.likes.push(user_id);
+    await likeService.createLike(userId, postId);
+    await likeService.updatePostLikeIncrement(postId);
+    await posts.likes.push(userId);
     await posts.save();
-    res.json({ message: "liked" });
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, "liked");
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.unLike = async (req, res) => {
-  let user_id = req.name.id;
-
-  let { post_id } = req.params;
+  let userId = req.name.id;
+  let { postId } = req.body;
 
   try {
-    const likeuser = await likeModel.findOne({ user: user_id });
-    if (!likeuser) return res.status(404).json({ message: "No such like" });
+    const likeuser = await likeService.checkUserLike(userId, postId);
+    if (!likeuser) throw new ClientError(404, "No such like");
 
-    if (likeuser.user == user_id) {
-      await postModel.findByIdAndUpdate(
-        { _id: post_id },
-        { $pull: { likes: user_id }, $inc: { like: -1 } }
-      );
-      await likeModel.deleteOne({ user: user_id, post: post_id });
-      res.status(200).json({ message: "Deleted Like successfully" });
+    if (likeuser.user == userId) {
+      await likeService.updatePostLikeDecrement(userId, postId);
+      await likeService.deleteLike(userId, postId);
+      return sendResponse(req, res, next, "Deleted Like successfully");
     } else {
-      return res.status(400).json({ message: "Cant Delete this like" });
+      throw new ClientError(404, "Cant Delete this like");
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };

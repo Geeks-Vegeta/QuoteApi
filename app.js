@@ -42,9 +42,9 @@ app.use(function (req, res, next) {
 app.use("/api/auth", authRoute);
 app.use("/quote", quoteRoute);
 app.use("/user", userRoute);
-app.use("/comment", commentRoute);
+app.use("/api/comment", commentRoute);
 app.use("/like", likeRoute);
-app.use("/follow", followerRoute);
+app.use("/api/request/user", followerRoute);
 
 const getRandomQuote = async () => {
   const numItems = await scrapQuote.estimatedDocumentCount();
