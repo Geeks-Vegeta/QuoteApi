@@ -1,18 +1,30 @@
 const userModel = require("../models/userModel");
+const sendResponse = require("../utils/response/send_response");
+const ClientError = require("../utils/exceptions/client_error");
+const ServerError = require("../utils/exceptions/server_error");
+const logger = require("../utils/exceptions/logger");
 
 const bcrypt = require("bcryptjs");
 
 // userupdate profile
 exports.userUpdateProfile = async (req, res) => {
   try {
-    let _id = req.name.id;
+    let userId = req.name.id;
 
-    const updateProfile = await userModel.findByIdAndUpdate({ _id }, req.body, {
-      new: true,
-    });
-    res.status(200).send(updateProfile);
-  } catch (error) {
-    console.log(error);
+    const updateProfile = await userModel.findByIdAndUpdate(
+      { _id: userId },
+      req.body,
+      {
+        new: true,
+      }
+    );
+    return sendResponse(req, res, next, updateProfile);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -20,9 +32,13 @@ exports.userUpdateProfile = async (req, res) => {
 exports.getUserId = async (req, res) => {
   try {
     const user_id = req.name.id;
-    res.status(200).send(user_id);
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, user_id);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -30,9 +46,13 @@ exports.getUserId = async (req, res) => {
 exports.allUsers = async (req, res) => {
   try {
     const allusers = await userModel.find();
-    res.send(allusers);
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, allusers);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -63,22 +83,30 @@ exports.userFollowUnfollow = async (req, res) => {
       default:
         break;
     }
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, "updated successfully");
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
 // delete user
 exports.deleteUser = async (req, res) => {
-  let { user_id } = req.params;
+  let { user_id } = req.body;
   try {
     const user = await userModel.findByIdAndDelete({ _id: user_id });
-    if (!user)
-      return res.status(404).json({ message: "This user does not exists" });
+    if (!user) throw new ClientError(404, "This user does not exists");
 
-    res.status(200).json({ message: "Deleted successfully" });
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, "Deleted successfully");
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -95,9 +123,13 @@ exports.changeUserPassword = async (req, res) => {
       { _id: user_id },
       { $set: { password: hashpassword } }
     );
-    res.status(200).json({ message: "Password Changed Successfully" });
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, "Password Changed Successfully");
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -114,21 +146,29 @@ exports.currentUser = async (req, res) => {
         "User"
       )
       .populate("following", "_id profile_pic username", "User");
-    res.send(user);
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, user);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
 // get user by id
 exports.getUserById = async (req, res) => {
-  let { user_id } = req.params;
+  let { user_id } = req.body;
 
   try {
     const userdata = await userModel.findById({ _id: user_id });
-    res.status(200).send(userdata);
-  } catch (error) {
-    console.log(error);
+    return sendResponse(req, res, next, userdata);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -141,11 +181,13 @@ exports.checkPassword = async (req, res) => {
     let user = await userModel.findOne({ _id: user_id });
 
     let isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword)
-      return res.status(401).json({ message: "Invalid Password" });
-
-    res.status(200).send(userdata);
-  } catch (error) {
-    console.log(error);
+    if (!isValidPassword) throw new ClientError(401, "Invalid Password");
+    return sendResponse(req, res, next, userdata);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      logger.exception(err, req);
+      throw new ClientError(403, err.message);
+    }
+    throw new ServerError(500, "", err.message);
   }
 };
