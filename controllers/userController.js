@@ -1,4 +1,4 @@
-const userModel = require("../models/userModel");
+const userService = require("../services/userService");
 const sendResponse = require("../utils/response/send_response");
 const ClientError = require("../utils/exceptions/client_error");
 const ServerError = require("../utils/exceptions/server_error");
@@ -10,15 +10,8 @@ const bcrypt = require("bcryptjs");
 exports.userUpdateProfile = async (req, res) => {
   try {
     let userId = req.name.id;
-
-    const updateProfile = await userModel.findByIdAndUpdate(
-      { _id: userId },
-      req.body,
-      {
-        new: true,
-      }
-    );
-    return sendResponse(req, res, next, updateProfile);
+    let update = await userService.updateProfile(userId, req.body);
+    return sendResponse(req, res, next, update);
   } catch (err) {
     if (err instanceof ClientError) {
       logger.exception(err, req);
@@ -45,7 +38,7 @@ exports.getUserId = async (req, res) => {
 // get all users
 exports.allUsers = async (req, res) => {
   try {
-    const allusers = await userModel.find();
+    const allusers = await userService.getAllUser;
     return sendResponse(req, res, next, allusers);
   } catch (err) {
     if (err instanceof ClientError) {
@@ -65,20 +58,12 @@ exports.userFollowUnfollow = async (req, res) => {
   try {
     switch (action) {
       case "follow":
-        await userModel.findByIdAndUpdate(follow, {
-          $push: { following: following },
-        }),
-          await userModel.findByIdAndUpdate(following, {
-            $push: { follow: follow },
-          });
+        await userService.updatefollowing(follow, following);
+        await userService.updatefollowing(following, follow);
         break;
       case "unfollow":
-        await userModel.findByIdAndUpdate(follow, {
-          $pull: { following: following },
-        }),
-          await userModel.findByIdAndUpdate(following, {
-            $pull: { follow: follow },
-          });
+        await userService.updatefollowing(follow, following);
+        await userService.updatefollowing(following, follow);
         break;
       default:
         break;
@@ -97,9 +82,8 @@ exports.userFollowUnfollow = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   let { user_id } = req.body;
   try {
-    const user = await userModel.findByIdAndDelete({ _id: user_id });
+    const user = await userService.deleteUser(user_id);
     if (!user) throw new ClientError(404, "This user does not exists");
-
     return sendResponse(req, res, next, "Deleted successfully");
   } catch (err) {
     if (err instanceof ClientError) {
@@ -119,10 +103,7 @@ exports.changeUserPassword = async (req, res) => {
     let salt = await bcrypt.genSaltSync(13);
     let hashpassword = await bcrypt.hash(password, salt);
 
-    await userModel.findByIdAndUpdate(
-      { _id: user_id },
-      { $set: { password: hashpassword } }
-    );
+    await userService.updateProfile(user_id, { password: hashpassword });
     return sendResponse(req, res, next, "Password Changed Successfully");
   } catch (err) {
     if (err instanceof ClientError) {
@@ -138,14 +119,7 @@ exports.currentUser = async (req, res) => {
   let user_id = req.name.id;
 
   try {
-    const user = await userModel
-      .findOne({ _id: user_id }, "-password")
-      .populate(
-        "followers",
-        "_id profile_pic username following followers",
-        "User"
-      )
-      .populate("following", "_id profile_pic username", "User");
+    const user = await userService.getCurrentUser(user_id);
     return sendResponse(req, res, next, user);
   } catch (err) {
     if (err instanceof ClientError) {
@@ -161,7 +135,7 @@ exports.getUserById = async (req, res) => {
   let { user_id } = req.body;
 
   try {
-    const userdata = await userModel.findById({ _id: user_id });
+    const userdata = await userService.checkUser(user_id);
     return sendResponse(req, res, next, userdata);
   } catch (err) {
     if (err instanceof ClientError) {
@@ -178,7 +152,7 @@ exports.checkPassword = async (req, res) => {
   let { password } = req.body;
 
   try {
-    let user = await userModel.findOne({ _id: user_id });
+    let user = await userService.checkUser(user_id);
 
     let isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) throw new ClientError(401, "Invalid Password");
