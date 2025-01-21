@@ -1,9 +1,21 @@
+//importing express
 const express = require("express");
-
-let app = express();
-
-//importing cookie parser
+require("express-async-errors");
+const app = express();
+const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const logger = require("./utils/logger");
+const cors = require("cors");
+const moment = require("moment");
+const helmet = require("helmet");
+const mongoClient = require("./configs/mongo_connection");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
+const session = require("express-session");
+const errorHandler = require("./responses/error-handler");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const registerRoute = require("./routes/registerRoute");
 const loginRoute = require("./routes/loginRoute");
@@ -16,17 +28,30 @@ const todayquote = require("./models/todayModel");
 const scrapQuote = require("./models/ScrapQuoteModel");
 const cron = require("node-cron");
 
-//importing cors
-const cors = require("cors");
-
-const dotenv = require("dotenv");
-dotenv.config();
-require("./models/connections");
+//configurations
+mongoClient.connect();
 
 // middleware
+morgan.token("time", (req) => {
+  return moment().toLocaleString();
+});
+app.use(
+  session({
+    secret: process.env.TOKEN_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan(":time | :method :url :status :response-time ms"));
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -69,8 +94,34 @@ app.get("/quoteofday", async (req, res) => {
 });
 
 //initial path
-app.get("/", function (req, res) {
-  res.json({ message: "this is initial route of blogging api" });
+app.get("/ping", async (req, res) => {
+  res.send({ message: "pong" });
 });
+
+app.use(errorHandler);
+app.use((err, req, res, next) => {
+  // Send a JSON response with the error message and status code
+  const statusCode = err.status || 500;
+  res.status(statusCode).json({
+    data: {
+      item: {},
+    },
+    status: {
+      type: "error",
+      message: "Something went wrong. Please try again later.",
+      description: "Something went wrong",
+    },
+  });
+});
+
+function handleProcessExceptions() {
+  process.on("uncaughtException", (ex) => {
+    logger.exception(ex);
+  });
+  process.on("unhandledRejection", (ex) => {
+    logger.exception(ex);
+  });
+}
+handleProcessExceptions();
 
 module.exports = app;
