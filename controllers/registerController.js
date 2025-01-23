@@ -1,34 +1,46 @@
-const userModel = require("../models/userModel");
+const service = require("../services/registerService");
+const bcrypt = require("../helper/bcrypt");
+const ClientError = require("../responses/client-error");
+const ServerError = require("../responses/server-error");
+const sendResponse = require("../responses/send-response");
+const Pagination = require("../utils/pagination");
+const logger = require("../utils/logger");
 
-const bcrypt = require("bcryptjs");
-
-exports.registerUser = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.registerUser = async (req, res, next) => {
   try {
-    let { username, email } = req.body;
+    let { username, email, password } = req.body;
+    const usernameAlreadyPresent = await service.checkUserName(username);
+    if (usernameAlreadyPresent) {
+      throw new ClientError(401, "username already exists");
+    }
 
-    const usernameAlreadyPresent = await userModel.findOne({
-      username: username,
-    });
-    if (usernameAlreadyPresent)
-      return res.status(401).json({ message: "username already exists" });
+    const emailAlreadyPresent = await service.checkEmail(email);
+    if (emailAlreadyPresent) {
+      throw new ClientError(401, "email already exists");
+    }
 
-    const emailAlreadyPresent = await userModel.findOne({ email: email });
-    if (emailAlreadyPresent)
-      return res.status(401).json({ message: "given email already exists" });
-
-    // creating salt
-    let salt = await bcrypt.genSaltSync(13);
-    let hashpassword = await bcrypt.hash(req.body.password, salt);
-
-    let newuser = await userModel({
+    const hashpassword = await bcrypt.generateHashPassword(password);
+    let newuser = {
       username: username,
       email: email,
       password: hashpassword,
+    };
+    await service.createUser(newuser);
+    return sendResponse(req, res, next, {
+      message: "user created successfully",
     });
-
-    await newuser.save();
-    res.status(201).json({ message: "user created successfully" });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
