@@ -1,5 +1,4 @@
 const userModel = require("../models/userModel");
-
 const bcrypt = require("bcryptjs");
 
 // userupdate profile
@@ -134,7 +133,7 @@ exports.getUserById = async (req, res) => {
 
 // check password
 exports.checkPassword = async (req, res) => {
-  let { user_id } = req.params;
+  let { user_id } = req.user;
   let { password } = req.body;
 
   try {

@@ -18,6 +18,23 @@ async function checkEmail(email) {
   }
 }
 
+/**
+ *
+ * @param {*} email
+ * @returns
+ */
+async function checkUser(email) {
+  try {
+    const user = await userModel.findOne({
+      email: email,
+    });
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
   checkEmail,
+  checkUser,
 };

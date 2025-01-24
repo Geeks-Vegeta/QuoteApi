@@ -1,12 +1,24 @@
 const jwt = require("../helper/jwt");
 const bcrypt = require("../helper/bcrypt");
-const userModel = require("../models/userModel");
 const userService = require("../services/userService");
 const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
-const Pagination = require("../utils/pagination");
 const logger = require("../utils/logger");
+const validator = require("../validator/loginValidator");
+
+/**
+ *
+ * @param {*} user
+ * @returns
+ */
+function getUserData(user) {
+  return {
+    user_id: user._id,
+    username: user.username,
+    email: user.email,
+  };
+}
 
 /**
  *
@@ -19,10 +31,20 @@ exports.loginUser = async (req, res, next) => {
   try {
     let { email, password } = req.body;
 
-    let user = await userService.checkEmail(email);
-    if (!user) {
+    const { error } = validator.loginValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
+    const [checkEmail, user] = await Promise.all([
+      userService.checkEmail(email),
+      userService.checkUser(email),
+    ]);
+
+    if (!checkEmail) {
       throw new ClientError(401, "Invalid Email");
     }
+
     const isValidPassword = await bcrypt.comparePassword(
       password,
       user.password
@@ -31,7 +53,9 @@ exports.loginUser = async (req, res, next) => {
       throw new ClientError(401, "Invalid Password");
     }
 
-    const token = await jwt.generateToken(user._id);
+    let userData = getUserData(user);
+
+    const token = await jwt.generateToken(userData);
     return sendResponse(req, res, next, {
       token: token,
     });

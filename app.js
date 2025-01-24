@@ -26,6 +26,7 @@ const likeRoute = require("./routes/likeRoute");
 const followerRoute = require("./routes/followerRoute");
 const todayquote = require("./models/todayModel");
 const scrapQuote = require("./models/ScrapQuoteModel");
+const { validateHmac } = require("./middleware/hmac-validator");
 const cron = require("node-cron");
 
 //configurations
@@ -42,10 +43,10 @@ app.use(
     saveUninitialized: true,
   })
 );
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(":time | :method :url :status :response-time ms"));
 app.use(cors());
-app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 app.use(mongoSanitize());
@@ -62,8 +63,8 @@ app.use(function (req, res, next) {
 });
 
 // routes
-app.use("/register", registerRoute);
-app.use("/userlogin", loginRoute);
+app.use("/register", [validateHmac], registerRoute);
+app.use("/login", [validateHmac], loginRoute);
 app.use("/quote", quoteRoute);
 app.use("/user", userRoute);
 app.use("/comment", commentRoute);

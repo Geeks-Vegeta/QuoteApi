@@ -2,11 +2,11 @@ const jwt = require("jsonwebtoken");
 
 /**
  *
- * @param {*} id
+ * @param {*} user
  * @returns
  */
-async function generateToken(id) {
-  const token = jwt.sign({ id: id }, process.env.TOKEN_SECRET);
+async function generateToken(user) {
+  const token = jwt.sign({ user }, process.env.TOKEN_SECRET);
   return token;
 }
 
