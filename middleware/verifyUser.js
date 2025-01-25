@@ -10,41 +10,31 @@ const logger = require("../utils/logger");
  * @param {*} next
  * @returns
  */
-exports.verifyUser = async (req, res, next) => {
+const verifyUser = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return next(new ClientError(401, "Authorization header missing"));
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return next(new ClientError(401, "Token missing"));
+  }
+
   try {
-    let auth = req.cookies.Authorization;
-    if (!auth) return res.status(404).json({ message: "Invalid Token" });
-    const verify = jwt.verify(auth, process.env.TOKEN_SECRET);
-    req.name = verify;
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    req.user = decoded;
     next();
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      return next(new ClientError(401, "Invalid Token"));
     }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
+    if (error instanceof jwt.TokenExpiredError) {
+      return next(new ClientError(401, "Token expired"));
+    }
+    logger.exception(error);
+    return next(new ServerError(500, "Internal Server Error", error.message));
   }
 };
 
-/**
- *
- * @param {*} req
- * @param {*} res
- * @param {*} next
- * @returns
- */
-exports.verifyAPI = async (req, res, next) => {
-  try {
-    const auth = req.headers["authorization"].split(" ")[1];
-    if (!auth) return res.status(404).json({ message: "Invalid Token" });
-    const verify = jwt.verify(auth, process.env.TOKEN_SECRET);
-    req.name = verify;
-    next();
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
+module.exports = verifyUser;

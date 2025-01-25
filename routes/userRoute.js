@@ -1,16 +1,46 @@
 const userRoute = require("express").Router();
 const userController = require("../controllers/userController");
-const verifyUser = require("../verifyUser");
-
-// user follow - unfollow
+const verifyUser = require("../middleware/verifyUser");
+const { rateLimiter } = require("../middleware/rate-limit");
+const { validateHmac } = require("../middleware/hmac-validator");
+const { enableUserAgentTracking } = require("../middleware/user-agent");
 
 // user update profile
-userRoute.put("/updateprofile", verifyUser, userController.userUpdateProfile);
+userRoute.put(
+  "/updateprofile",
+  [verifyUser, rateLimiter(2), validateHmac],
+  userController.userUpdateProfile
+);
+userRoute.put(
+  "/changepassword",
+  [verifyUser, rateLimiter(2), validateHmac],
+  userController.changeUserPassword
+);
+userRoute.delete(
+  "/archive/:user_id",
+  [verifyUser, rateLimiter(1)],
+  userController.archiveUser
+);
+userRoute.get(
+  "/getUserId",
+  [verifyUser, rateLimiter(25)],
+  userController.getUserId
+);
+userRoute.get(
+  "/currentuser",
+  [verifyUser, rateLimiter(25)],
+  userController.currentUser
+);
+userRoute.put(
+  "/checkpassword",
+  [verifyUser, rateLimiter(5), validateHmac],
+  userController.checkPassword
+);
+userRoute.get(
+  "/getauser/:user_id",
+  [verifyUser, rateLimiter(15)],
+  userController.getAUser
+);
 userRoute.get("/alluser", userController.allUsers);
-userRoute.put("/changepassword", userController.changeUserPassword);
-userRoute.put("/checkpassword", userController.checkPassword);
-userRoute.delete("/deleteuser/:user_id", userController.deleteUser);
-userRoute.get("/getUserId", verifyUser, userController.getUserId);
-userRoute.get("/getuserbyid/:user_id", userController.getUserById);
-userRoute.get("/currentuser", verifyUser, userController.currentUser);
+
 module.exports = userRoute;

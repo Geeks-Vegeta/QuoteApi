@@ -46,7 +46,7 @@ async function updateUser(user_id, reqBody) {
   try {
     let user = await userModel.findByIdAndUpdate(
       { _id: new ObjectId(user_id) },
-      reqBody,
+      { $set: reqBody },
       {
         new: true,
       }
@@ -73,9 +73,24 @@ async function getUserById(user_id) {
   }
 }
 
+/**
+ *
+ * @param {*} user_id
+ * @returns
+ */
+async function archiveUserData(user_id) {
+  try {
+    let user = await updateUser(user_id, { isArchived: true });
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
   checkEmail,
   getUserByEmail,
   updateUser,
   getUserById,
+  archiveUserData,
 };

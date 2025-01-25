@@ -78,6 +78,12 @@ const userSchema = mongoose.Schema({
   user_location: {
     type: String,
   },
+  archived: {
+    type: Boolean,
+    default: false,
+  },
+  createdAt: Number,
+  updatedAt: Number,
 });
 
 const userModel = mongoose.model("User", userSchema);
