@@ -1,5 +1,5 @@
 const userModel = require("../models/userModel");
-const bcrypt = require("bcryptjs");
+const moment = require("moment");
 
 /**
  *
@@ -42,7 +42,11 @@ async function checkEmail(email) {
  */
 async function createUser(user) {
   try {
-    const newUser = new userModel(user);
+    const newUser = new userModel({
+      ...user,
+      createdAt: moment().unix(),
+      updatedAt: moment().unix(),
+    });
     await newUser.save();
     return newUser;
   } catch (error) {
