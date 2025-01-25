@@ -38,7 +38,7 @@ exports.loginUser = async (req, res, next) => {
 
     const [checkEmail, user] = await Promise.all([
       userService.checkEmail(email),
-      userService.checkUser(email),
+      userService.getUserByEmail(email),
     ]);
 
     if (!checkEmail) {

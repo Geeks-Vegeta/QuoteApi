@@ -1,7 +1,5 @@
 const userRoute = require("express").Router();
-
 const userController = require("../controllers/userController");
-
 const verifyUser = require("../verifyUser");
 
 // user follow - unfollow

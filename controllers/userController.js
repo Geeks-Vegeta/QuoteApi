@@ -1,27 +1,55 @@
 const userModel = require("../models/userModel");
-const bcrypt = require("bcryptjs");
+const userService = require("../services/userService");
+const bcrypt = require("../helper/bcrypt");
+const ClientError = require("../responses/client-error");
+const ServerError = require("../responses/server-error");
+const sendResponse = require("../responses/send-response");
+const logger = require("../utils/logger");
+const validator = require("../validator/loginValidator");
 
-// userupdate profile
-exports.userUpdateProfile = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.userUpdateProfile = async (req, res, next) => {
   try {
-    let _id = req.name.id;
+    let { user_id } = req.user;
 
-    const updateProfile = await userModel.findByIdAndUpdate({ _id }, req.body, {
-      new: true,
+    await userService.updateUser(user_id, req.body);
+    return sendResponse(req, res, next, {
+      message: "user updated successfully",
     });
-    res.status(200).send(updateProfile);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// get user id
-exports.getUserId = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.getUserId = async (req, res, next) => {
   try {
-    const user_id = req.name.id;
-    res.status(200).send(user_id);
-  } catch (error) {
-    console.log(error);
+    const { user_id } = req.user;
+    return sendResponse(req, res, next, {
+      user_id: user_id,
+    });
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -31,7 +59,11 @@ exports.allUsers = async (req, res) => {
     const allusers = await userModel.find();
     res.send(allusers);
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -63,7 +95,11 @@ exports.userFollowUnfollow = async (req, res) => {
         break;
     }
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -77,7 +113,11 @@ exports.deleteUser = async (req, res) => {
 
     res.status(200).json({ message: "Deleted successfully" });
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -96,7 +136,11 @@ exports.changeUserPassword = async (req, res) => {
     );
     res.status(200).json({ message: "Password Changed Successfully" });
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -115,36 +159,65 @@ exports.currentUser = async (req, res) => {
       .populate("following", "_id profile_pic username", "User");
     res.send(user);
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// get user by id
-exports.getUserById = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.getUserById = async (req, res, next) => {
   let { user_id } = req.params;
 
   try {
-    const userdata = await userModel.findById({ _id: user_id });
-    res.status(200).send(userdata);
+    const userdata = await userService.getUserById(user_id);
+    return sendResponse(req, res, next, userdata);
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// check password
-exports.checkPassword = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.checkPassword = async (req, res, next) => {
   let { user_id } = req.user;
   let { password } = req.body;
 
   try {
-    let user = await userModel.findOne({ _id: user_id });
+    let user = await userService.getUserById(user_id);
+    const validatePassword = await bcrypt.comparePassword(
+      password,
+      user.password
+    );
+    if (!validatePassword) {
+      throw new ClientError(401, "Invalid Password");
+    }
 
-    let isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword)
-      return res.status(401).json({ message: "Invalid Password" });
-
-    res.status(200).send(userdata);
+    return sendResponse(req, res, next, {
+      message: "Password is correct",
+    });
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
