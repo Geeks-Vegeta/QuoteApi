@@ -4,7 +4,7 @@ const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
-const validator = require("../validator/loginValidator");
+const validator = require("../validator/registerValidator");
 
 /**
  *
@@ -17,7 +17,7 @@ exports.registerUser = async (req, res, next) => {
   try {
     let { username, email, password } = req.body;
 
-    const { error } = validator.loginValidator(req.body);
+    const { error } = validator.registerValidator(req.body);
     if (error) {
       throw new ClientError(400, error.message);
     }

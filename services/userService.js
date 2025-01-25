@@ -64,7 +64,9 @@ async function getUserById(user_id) {
   try {
     const user = await userModel
       .findOne({ _id: new ObjectId(user_id) })
-      .select(-password - __v - warning_number)
+      .select(
+        -password - __v - warning_number - archived - updatedAt - createdAt
+      )
       .lean();
     return user;
   } catch (error) {
