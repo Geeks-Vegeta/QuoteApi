@@ -1,7 +1,6 @@
 const userModel = require("../models/userModel");
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;
-const bcrypt = require("bcryptjs");
 
 /**
  *

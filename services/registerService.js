@@ -4,7 +4,7 @@ const moment = require("moment");
 /**
  *
  * @param {*} userName
- * @returns boolean
+ * @returns {boolean}
  */
 async function checkUserName(userName) {
   try {
@@ -21,7 +21,7 @@ async function checkUserName(userName) {
 /**
  *
  * @param {*} email
- * @returns boolean
+ * @returns {boolean}
  */
 async function checkEmail(email) {
   try {
