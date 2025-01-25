@@ -34,12 +34,11 @@ exports.registerUser = async (req, res, next) => {
     }
 
     const hashpassword = await bcrypt.generateHashPassword(password);
-    password = hashpassword;
-    // let newuser = {
-    //   username: username,
-    //   email: email,
-    //   password: hashpassword,
-    // };
+    let newuser = {
+      username: username,
+      email: email,
+      password: hashpassword,
+    };
     await service.createUser(newuser);
 
     return sendResponse(req, res, next, {
