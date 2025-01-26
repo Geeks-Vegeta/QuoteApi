@@ -58,56 +58,6 @@ exports.getUserId = async (req, res, next) => {
   }
 };
 
-// get all users
-exports.allUsers = async (req, res) => {
-  try {
-    const allusers = await userModel.find();
-    res.send(allusers);
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
-// user follow /unfollow
-exports.userFollowUnfollow = async (req, res) => {
-  const following = req.name.id;
-
-  const { follow, action } = req.body;
-
-  try {
-    switch (action) {
-      case "follow":
-        await userModel.findByIdAndUpdate(follow, {
-          $push: { following: following },
-        }),
-          await userModel.findByIdAndUpdate(following, {
-            $push: { follow: follow },
-          });
-        break;
-      case "unfollow":
-        await userModel.findByIdAndUpdate(follow, {
-          $pull: { following: following },
-        }),
-          await userModel.findByIdAndUpdate(following, {
-            $pull: { follow: follow },
-          });
-        break;
-      default:
-        break;
-    }
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
 /**
  *
  * @param {*} req
@@ -116,8 +66,9 @@ exports.userFollowUnfollow = async (req, res) => {
  * @returns
  */
 exports.archiveUser = async (req, res, next) => {
-  let { user_id } = req.params;
   try {
+    let { user_id } = req.user;
+
     const user = await userService.archiveUserData(user_id);
     if (!user) {
       throw new ClientError(404, "This user does not exists");
@@ -169,20 +120,19 @@ exports.changeUserPassword = async (req, res, next) => {
   }
 };
 
-// get current user
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
 exports.currentUser = async (req, res, next) => {
   try {
     let { user_id } = req.user;
 
-    const user = await userModel
-      .findOne({ _id: user_id }, "-password")
-      .populate(
-        "followers",
-        "_id profile_pic username following followers",
-        "User"
-      )
-      .populate("following", "_id profile_pic username", "User");
-    return sendResponse(req, res, next, user);
+    const userdata = await userService.getUserById(user_id);
+    return sendResponse(req, res, next, userdata);
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;

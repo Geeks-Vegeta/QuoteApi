@@ -61,12 +61,6 @@ const userSchema = mongoose.Schema({
   mobile_number: {
     type: String,
   },
-  followers: {
-    type: Array,
-  },
-  following: {
-    type: Array,
-  },
   blocked: {
     type: Boolean,
     default: false,

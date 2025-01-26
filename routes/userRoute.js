@@ -17,7 +17,7 @@ userRoute.put(
   userController.changeUserPassword
 );
 userRoute.delete(
-  "/archive/:user_id",
+  "/archive",
   [verifyUser, rateLimiter(1)],
   userController.archiveUser
 );
@@ -41,6 +41,5 @@ userRoute.get(
   [verifyUser, rateLimiter(15)],
   userController.getAUser
 );
-userRoute.get("/alluser", userController.allUsers);
 
 module.exports = userRoute;

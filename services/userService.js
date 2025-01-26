@@ -105,7 +105,7 @@ async function getUserPassword(user_id) {
  */
 async function archiveUserData(user_id) {
   try {
-    let user = await updateUser(user_id, { isArchived: true });
+    let user = await updateUser(user_id, { archived: true });
     return user;
   } catch (error) {
     console.log(error);
