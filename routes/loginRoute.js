@@ -4,7 +4,10 @@ const loginController = require("../controllers/loginController");
 
 loginRoute.post("/", loginController.loginUser);
 
-loginRoute.get("/logout", (req, res) => {
+/**
+ * @swagger
+ */
+loginRoute.get("/logout", (req, res, next) => {
   res.clearCookie("Authorization", { path: "/" });
   res.status(200).send("logout");
 });

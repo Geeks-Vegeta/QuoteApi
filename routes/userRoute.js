@@ -7,8 +7,8 @@ const { enableUserAgentTracking } = require("../middleware/user-agent");
 
 // user update profile
 userRoute.put(
-  "/updateprofile",
-  [verifyUser, rateLimiter(2), validateHmac],
+  "/update",
+  [verifyUser, rateLimiter(5), validateHmac],
   userController.userUpdateProfile
 );
 userRoute.put(

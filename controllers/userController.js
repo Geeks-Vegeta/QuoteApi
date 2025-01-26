@@ -5,7 +5,7 @@ const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
-const validator = require("../validator/loginValidator");
+const validator = require("../validator/userValidator");
 
 /**
  *
@@ -17,6 +17,11 @@ const validator = require("../validator/loginValidator");
 exports.userUpdateProfile = async (req, res, next) => {
   try {
     let { user_id } = req.user;
+
+    const { error } = validator.userValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
 
     await userService.updateUser(user_id, req.body);
     return sendResponse(req, res, next, {
@@ -58,7 +63,7 @@ exports.allUsers = async (req, res) => {
   try {
     const allusers = await userModel.find();
     res.send(allusers);
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -94,7 +99,7 @@ exports.userFollowUnfollow = async (req, res) => {
       default:
         break;
     }
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -121,7 +126,7 @@ exports.archiveUser = async (req, res, next) => {
     return sendResponse(req, res, next, {
       message: "User Archived successfully",
     });
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -142,6 +147,11 @@ exports.changeUserPassword = async (req, res, next) => {
   let { password } = req.body;
 
   try {
+    const { error } = validator.passwordValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
     const hashpassword = await bcrypt.generateHashPassword(password);
     let obj = {
       password: hashpassword,
@@ -150,7 +160,7 @@ exports.changeUserPassword = async (req, res, next) => {
     return sendResponse(req, res, next, {
       message: "Password updated successfully",
     });
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -161,9 +171,9 @@ exports.changeUserPassword = async (req, res, next) => {
 
 // get current user
 exports.currentUser = async (req, res, next) => {
-  let { user_id } = req.user;
-
   try {
+    let { user_id } = req.user;
+
     const user = await userModel
       .findOne({ _id: user_id }, "-password")
       .populate(
@@ -173,7 +183,7 @@ exports.currentUser = async (req, res, next) => {
       )
       .populate("following", "_id profile_pic username", "User");
     return sendResponse(req, res, next, user);
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -193,9 +203,13 @@ exports.getAUser = async (req, res, next) => {
   let { user_id } = req.params;
 
   try {
+    // check if user exists
     const userdata = await userService.getUserById(user_id);
+    if (!userdata) {
+      throw new ClientError(404, "User not found");
+    }
     return sendResponse(req, res, next, userdata);
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -216,7 +230,12 @@ exports.checkPassword = async (req, res, next) => {
   let { password } = req.body;
 
   try {
-    let user = await userService.getUserById(user_id);
+    const { error } = validator.passwordValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
+    let user = await userService.getUserPassword(user_id);
     const validatePassword = await bcrypt.comparePassword(
       password,
       user.password
@@ -228,7 +247,7 @@ exports.checkPassword = async (req, res, next) => {
     return sendResponse(req, res, next, {
       message: "Password is correct",
     });
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }

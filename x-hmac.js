@@ -18,8 +18,7 @@ function generateHmac(message, algorithm = "sha256") {
 }
 
 const message = {
-  email: "shreyas@gmail.com",
-  password: "shreyas123",
+  username: "jhon",
 };
 
 const expectedHmac = generateHmac(JSON.stringify(message));

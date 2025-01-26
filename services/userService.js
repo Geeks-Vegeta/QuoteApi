@@ -64,9 +64,33 @@ async function getUserById(user_id) {
   try {
     const user = await userModel
       .findOne({ _id: new ObjectId(user_id) })
-      .select(
-        -password - __v - warning_number - archived - updatedAt - createdAt
-      )
+      .select({
+        password: 0,
+        __v: 0,
+        warning_number: 0,
+        archived: 0,
+        updatedAt: 0,
+        createdAt: 0,
+      })
+      .lean();
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+/**
+ *
+ * @param {*} user_id
+ * @returns
+ */
+async function getUserPassword(user_id) {
+  try {
+    const user = await userModel
+      .findOne({ _id: new ObjectId(user_id) })
+      .select({
+        password: 1,
+      })
       .lean();
     return user;
   } catch (error) {
@@ -94,4 +118,5 @@ module.exports = {
   updateUser,
   getUserById,
   archiveUserData,
+  getUserPassword,
 };

@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
  * @returns
  */
 async function generateToken(user) {
-  const token = jwt.sign({ user }, process.env.TOKEN_SECRET);
+  const token = jwt.sign({ ...user }, process.env.TOKEN_SECRET);
   return token;
 }
 
