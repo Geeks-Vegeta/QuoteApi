@@ -153,7 +153,7 @@ exports.getPosts = async (req, res, next) => {
     const pipeline = [];
     let direction = sortDirection === "asc" ? 1 : -1;
 
-    const { error } = validate.getColorValidator(req.body);
+    const { error } = validator.getQuoteValidator(req.body);
     if (error) {
       throw new ClientError(400, error.message);
     }
