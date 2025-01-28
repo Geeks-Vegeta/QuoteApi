@@ -1,91 +1,137 @@
 const quoteModel = require("../models/quoteModel");
-
-// object
-var ObjectId = require("mongoose").Types.ObjectId;
-
+const ClientError = require("../responses/client-error");
+const ServerError = require("../responses/server-error");
+const sendResponse = require("../responses/send-response");
+const logger = require("../utils/logger");
+const validator = require("../validator/quoteValidator");
+const quoteService = require("../services/quoteService");
 const { client } = require("../redis-connection/connection_redis");
 
-// create post
-exports.createPost = async (req, res) => {
-  let { quote, tags } = req.body;
-
-  const _id = req.name.id;
-
-  // title validation
-  const isQuotePresent = await quoteModel.findOne({ quote: quote });
-  if (isQuotePresent) return res.json({ message: "Quote Already Present" });
-
-  const new_post = quoteModel({
-    quote: quote,
-    tags: tags,
-    user: _id,
-  });
-
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns {object}
+ */
+exports.createPost = async (req, res, next) => {
   try {
-    await new_post.save();
-    res.send(new_post);
-  } catch (error) {
-    console.log(error);
-  }
-};
+    let { quote, tags } = req.body;
+    const { user_id } = req.user;
 
-// delete post
-exports.deletePost = async (req, res) => {
-  let { id } = req.params;
-  let user_id = req.name.id;
-
-  const isValidPost = await quoteModel.findOne({ _id: id });
-
-  if (!isValidPost) return res.json({ message: "This post does not exists" });
-
-  try {
-    if (user_id == isValidPost.user) {
-      await quoteModel.deleteOne({ _id: id });
-      res.json({ message: "deleted successfully" });
-    } else {
-      res.status(404).json({ message: "can't delete" });
+    const { error } = validator.quoteValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
 
-// update post
-exports.updatePost = async (req, res) => {
-  let { id } = req.params;
-  let user_id = req.name.id;
-
-  const isValidPost = await quoteModel.findOne({ _id: id });
-
-  if (!isValidPost) return res.json({ message: "This post does not exists" });
-
-  try {
-    if (user_id == isValidPost.user) {
-      const update_post = await quoteModel.findByIdAndUpdate(
-        { _id: isValidPost._id },
-        req.body,
-        { new: true }
-      );
-      res.send(update_post);
-    } else {
-      res.status(404).json({ message: "can't delete" });
+    const isQuotePresent = await quoteService.checkQuoteExists(quote);
+    if (isQuotePresent) {
+      throw new ClientError(400, "Quote Already Present");
     }
+
+    const new_post = {
+      quote: quote,
+      tags: tags,
+      user: user_id,
+    };
+    await quoteService.createPost(new_post);
+    return sendResponse(req, res, next, {
+      message: "Post created successfully",
+    });
   } catch (error) {
-    console.log(error);
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// get user post by id
-exports.getUserPostsById = async (req, res) => {
-  let { id } = req.params;
-
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.deletePost = async (req, res, next) => {
   try {
-    const userdata = await quoteModel
-      .find({ user: id })
-      .sort({ postDateUpdate: -1 });
-    res.status(200).send(userdata);
-  } catch (error) {
-    console.log(error);
+    let { id } = req.params;
+    let { user_id } = req.user;
+
+    const isValidPost = await quoteService.getPostById(id);
+    if (!isValidPost) {
+      throw new ClientError(404, "This post does not exists");
+    }
+
+    if (user_id == isValidPost.user) {
+      await quoteService.deletePost(id);
+      return sendResponse(req, res, next, {
+        message: "Post deleted successfully",
+      });
+    } else {
+      throw new ClientError(404, "can't delete");
+    }
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.updatePost = async (req, res, next) => {
+  try {
+    let { id } = req.params;
+    let { user_id } = req.user;
+
+    const isValidPost = await quoteService.getPostById(id);
+    if (!isValidPost) {
+      throw new ClientError(404, "This post does not exists");
+    }
+    if (user_id == isValidPost.user) {
+      await quoteService.updatePost(id, req.body);
+      return sendResponse(req, res, next, {
+        message: "Post updated successfully",
+      });
+    } else {
+      throw new ClientError(404, "can't update");
+    }
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.getAllUserPosts = async (req, res, next) => {
+  try {
+    let { id } = req.params;
+    const userData = await quoteService.userPosts(id);
+    return sendResponse(req, res, next, userData);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -94,8 +140,12 @@ exports.getMostLikedPosts = async (req, res) => {
   try {
     const allposts = await quoteModel.find().limit(4).sort({ like: -1 });
     res.send(allposts);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -103,8 +153,12 @@ exports.getMostCommentedPosts = async (req, res) => {
   try {
     const allposts = await quoteModel.find().limit(4).sort({ comments: -1 });
     res.send(allposts);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -112,8 +166,12 @@ exports.getSingleRandomPosts = async (req, res) => {
   try {
     const allposts = await quoteModel.find().populate("user").limit(4);
     res.send(allposts);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -128,47 +186,57 @@ exports.getRandomPosts = async (req, res) => {
       await client.set("randompost", JSON.stringify(allposts), "EX", 3600);
       return res.status(200).send(allposts);
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// getAllRecentPosts
-exports.getAllRecentPosts = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns {object}
+ */
+exports.getAllRecentPosts = async (req, res, next) => {
   try {
     const allposts = await quoteModel
       .find()
       .populate("user")
       .sort({ postDateUpdate: -1 });
-    // const getRes = await client.get("recentposts");
-    // if (getRes){
-    //     return res.send(JSON.parse(getRes));
-    // }else{
-    //     await client.set("recentposts", JSON.stringify(allposts),'EX',3600);
+
     return res.status(200).send(allposts);
-    // }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// getall usersPost
-
-exports.getAllCurrentUserPosts = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.getAllCurrentUserPosts = async (req, res, next) => {
   try {
-    let user_id = req.name.id;
-    const allposts = await quoteModel
-      .find({ user: user_id })
-      .sort({ postDateUpdate: -1 });
-    const getRes = await client.get("currentuserquotes");
-    if (getRes) {
-      return res.send(JSON.parse(getRes));
-    } else {
-      await client.set("currentuserquotes", JSON.stringify(allposts));
-      return res.status(200).send(allposts);
+    let { user_id } = req.user;
+    const allposts = await quoteService.userPosts(user_id);
+    return sendResponse(req, res, next, allposts);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
     }
-  } catch (error) {
-    console.log(error);
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
@@ -192,7 +260,11 @@ exports.getPostByTitle = async (req, res) => {
         },
       });
     res.status(200).send(allpost);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };

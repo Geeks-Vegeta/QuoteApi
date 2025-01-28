@@ -27,14 +27,8 @@ const quoteSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  postDate: {
-    type: Date,
-    default: Date.now,
-  },
-  postDateUpdate: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: Number,
+  updatedAt: Number,
 });
 
 const quoteModel = mongoose.model("Quote", quoteSchema);
