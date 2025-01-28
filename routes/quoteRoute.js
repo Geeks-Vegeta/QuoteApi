@@ -11,17 +11,6 @@ quoteRoute.get(
   quoteController.getAllCurrentUserPosts
 );
 quoteRoute.get("/getpostbytitle", [verifyUser], quoteController.getPostByTitle);
-quoteRoute.get(
-  "/getUserPostsById/:id",
-  [verifyUser],
-  quoteController.getUserPostsById
-);
-quoteRoute.get("/getmostlikepost", quoteController.getMostLikedPosts);
-quoteRoute.get("/getmostcommentpost", quoteController.getMostCommentedPosts);
-quoteRoute.get("/getrandompost", quoteController.getRandomPosts);
-quoteRoute.get("/getsinglerandompost", quoteController.getSingleRandomPosts);
-
-// getUserPostsById
-quoteRoute.get("/getAllRecentPosts", quoteController.getAllRecentPosts);
+quoteRoute.post("/getposts", [verifyUser], quoteController.getPosts);
 
 module.exports = quoteRoute;

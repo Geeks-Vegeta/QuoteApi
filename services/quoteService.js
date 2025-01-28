@@ -118,6 +118,34 @@ async function userPosts(user_id) {
   }
 }
 
+/**
+ *
+ * @param {*} pipeline
+ * @returns
+ */
+async function quoteAggregate(pipeline) {
+  try {
+    const post = await quoteModel.aggregate(pipeline);
+    return post;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+/**
+ *
+ * @param {*} filterData
+ * @returns
+ */
+async function quoteDocumentCount(filterData) {
+  try {
+    const count = await quoteModel.countDocuments(filterData);
+    return count;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 module.exports = {
   checkQuoteExists,
   createPost,
@@ -125,4 +153,6 @@ module.exports = {
   deletePost,
   updatePost,
   userPosts,
+  quoteAggregate,
+  quoteDocumentCount,
 };

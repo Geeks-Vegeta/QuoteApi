@@ -5,7 +5,7 @@ const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
 const validator = require("../validator/quoteValidator");
 const quoteService = require("../services/quoteService");
-const { client } = require("../redis-connection/connection_redis");
+const Pagination = require("../utils/pagination");
 
 /**
  *
@@ -135,81 +135,79 @@ exports.getAllUserPosts = async (req, res, next) => {
   }
 };
 
-// most liked posts
-exports.getMostLikedPosts = async (req, res) => {
-  try {
-    const allposts = await quoteModel.find().limit(4).sort({ like: -1 });
-    res.send(allposts);
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
-exports.getMostCommentedPosts = async (req, res) => {
-  try {
-    const allposts = await quoteModel.find().limit(4).sort({ comments: -1 });
-    res.send(allposts);
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
-exports.getSingleRandomPosts = async (req, res) => {
-  try {
-    const allposts = await quoteModel.find().populate("user").limit(4);
-    res.send(allposts);
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
-exports.getRandomPosts = async (req, res) => {
-  try {
-    let randnumber = Math.floor(Math.random() * 10);
-    const allposts = await quoteModel.find().limit(20).skip(randnumber);
-    const getRes = await client.get("randompost");
-    if (getRes) {
-      return res.send(JSON.parse(getRes));
-    } else {
-      await client.set("randompost", JSON.stringify(allposts), "EX", 3600);
-      return res.status(200).send(allposts);
-    }
-  } catch (err) {
-    if (err instanceof ClientError) {
-      throw err;
-    }
-    logger.exception(err);
-    throw new ServerError(500, "", err.message);
-  }
-};
-
 /**
  *
  * @param {*} req
  * @param {*} res
  * @param {*} next
- * @returns {object}
+ * @returns
  */
-exports.getAllRecentPosts = async (req, res, next) => {
+exports.getPosts = async (req, res, next) => {
   try {
-    const allposts = await quoteModel
-      .find()
-      .populate("user")
-      .sort({ postDateUpdate: -1 });
+    const pageIndex = Number(req.query.pageIndex) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const offset = (pageIndex - 1) * pageSize;
+    const { sortColumn, sortDirection, filter } = req.body;
+    let sortData = {};
+    let filterData = {};
+    const pipeline = [];
+    let direction = sortDirection === "asc" ? 1 : -1;
 
-    return res.status(200).send(allposts);
+    const { error } = validate.getColorValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
+    switch (sortColumn) {
+      case "date":
+        sortData["createdAt"] = direction; // most recent
+        break;
+      case "comments":
+        sortData["comments"] = direction; // most commented
+        break;
+      case "like":
+        sortData["like"] = direction; // most commented
+        break;
+      default:
+        sortData["createdAt"] = -1;
+    }
+
+    if (Object.keys(filter).length > 0) {
+      if ("tag" in filter) {
+        filterData["tags.value"] = filter.tag; // tags
+      }
+    }
+    pipeline.push({
+      $match: filterData,
+    });
+    pipeline.push({
+      $sort: sortData,
+    });
+    pipeline.push({
+      $skip: offset,
+    });
+    pipeline.push({ $limit: pageSize });
+    pipeline.push({
+      $project: {
+        _id: 1,
+        quote: 1,
+        like: 1,
+        tags: 1,
+        createdAt: 1,
+      },
+    });
+    const totalColorCount = await quoteService.quoteDocumentCount(filterData);
+    const colorTagList = await quoteService.quoteAggregate(pipeline);
+
+    const pagination = new Pagination(
+      sortColumn,
+      sortDirection,
+      totalColorCount,
+      pageSize,
+      pageIndex
+    );
+
+    return sendResponse(req, res, next, colorTagList, undefined, pagination);
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
