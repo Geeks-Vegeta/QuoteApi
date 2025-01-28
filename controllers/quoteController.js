@@ -238,26 +238,19 @@ exports.getAllCurrentUserPosts = async (req, res, next) => {
   }
 };
 
-// get post by title
-exports.getPostByTitle = async (req, res) => {
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.getPostByTitle = async (req, res, next) => {
   let { _id } = req.query;
 
   try {
-    const allpost = await quoteModel
-      .findOne({ _id: _id })
-      .populate("user")
-      .populate({
-        path: "comments",
-        options: {
-          sort: {
-            commentDateUpdate: -1,
-          },
-          populate: {
-            path: "user",
-          },
-        },
-      });
-    res.status(200).send(allpost);
+    const post = await quoteService.getPostById(_id);
+    return sendResponse(req, res, next, post);
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
