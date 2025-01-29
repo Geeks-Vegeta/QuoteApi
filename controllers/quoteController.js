@@ -1,4 +1,3 @@
-const quoteModel = require("../models/quoteModel");
 const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
@@ -180,13 +179,7 @@ exports.getPosts = async (req, res, next) => {
     pipeline.push({
       $match: filterData,
     });
-    pipeline.push({
-      $sort: sortData,
-    });
-    pipeline.push({
-      $skip: offset,
-    });
-    pipeline.push({ $limit: pageSize });
+
     pipeline.push({
       $project: {
         _id: 1,
@@ -194,8 +187,17 @@ exports.getPosts = async (req, res, next) => {
         like: 1,
         tags: 1,
         createdAt: 1,
+        comments: { $size: "$comments" },
+        likes: { $size: "$likes" },
       },
     });
+    pipeline.push({
+      $sort: sortData,
+    });
+    pipeline.push({
+      $skip: offset,
+    });
+    pipeline.push({ $limit: pageSize });
     const totalColorCount = await quoteService.quoteDocumentCount(filterData);
     const colorTagList = await quoteService.quoteAggregate(pipeline);
 

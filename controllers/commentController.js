@@ -1,80 +1,66 @@
-const commentModel = require("../models/commentModel");
+const sendResponse = require("../responses/send-response");
+const ClientError = require("../responses/client-error");
+const ServerError = require("../responses/server-error");
+const sendResponse = require("../responses/send-response");
+const logger = require("../utils/logger");
+const validator = require("../validator/quoteValidator");
+const commentService = require("../services/commentService");
+const quoteService = require("../services/quoteService");
 
-const postModel = require("../models/quoteModel");
-
-// add comment
-exports.postComment = async (req, res) => {
-  let { postid } = req.params;
-  let userid = req.name.id;
-  let { comment } = req.body;
-
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.postComment = async (req, res, next) => {
   try {
-    let posts = await postModel.findOne({ _id: postid });
+    const { quoteId, comment } = req.body;
+    const { user_id } = req.user;
 
-    let commenting = commentModel({
-      comment: comment,
-      post: postid,
-      user: userid,
-    });
-    await commenting.save();
-    await posts.comments.push(commenting);
-    await posts.save();
-    res.status(200).send(commenting);
-  } catch (error) {
-    console.log(error);
+    if (!content || content.trim().length === 0) {
+      throw new ClientError(400, "Comment content cannot be empty.");
+    }
+
+    const quote = await quoteService.getPostById(quoteId);
+    if (!quote) {
+      throw new ClientError(404, "This post does not exists");
+    }
+    await commentService.addComment(quoteId, user_id, comment);
+    return sendResponse(req, res, next, { message: "commented successfully" });
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };
 
-// updateComment
-exports.updateComment = async (req, res) => {
-  let userid = req.name.id;
-  let { comment_id } = req.params;
-
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.deleteComment = async (req, res, next) => {
   try {
-    let isusercomment = await commentModel.findOne({ _id: comment_id });
-    if (!isusercomment)
-      return res.status(404).json({ message: "This comment does not exists" });
+    let { user_id } = req.user;
+    let { quoteId, comment } = req.body;
 
-    if (isusercomment.user == userid) {
-      let comment = await commentModel.findByIdAndUpdate(
-        { _id: comment_id },
-        req.body,
-        { new: true }
-      );
-      res.status(200).send(comment);
-    } else {
-      return res
-        .status(401)
-        .json({ message: "You are not authorised to comment" });
+    const quote = await quoteService.getPostById(quoteId);
+    if (!quote) {
+      throw new ClientError(404, "This post does not exists");
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-// delete comment
-exports.deleteComment = async (req, res) => {
-  let userid = req.name.id;
-  let { comment_id, post_id } = req.params;
-
-  try {
-    let isusercomment = await commentModel.findOne({ _id: comment_id });
-    if (!isusercomment)
-      return res.status(404).json({ message: "This comment does not exists" });
-
-    if (isusercomment.user == userid) {
-      await commentModel.findByIdAndDelete({ _id: comment_id });
-      await postModel.findByIdAndUpdate(
-        { _id: post_id },
-        { $pull: { comments: comment_id } }
-      );
-      res.json({ message: "Deleted successfully" });
-    } else {
-      return res
-        .status(401)
-        .json({ message: "You are not authorised to comment" });
+    await commentService.addComment(quoteId, user_id, comment);
+    return sendResponse(req, res, next, { message: "commented successfully" });
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
     }
-  } catch (error) {
-    console.log(error);
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
   }
 };

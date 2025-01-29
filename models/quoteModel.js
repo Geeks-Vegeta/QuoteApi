@@ -8,16 +8,18 @@ const quoteSchema = mongoose.Schema({
   like: {
     type: Number,
   },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
   comments: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment",
+      userId: { type: Schema.Types.ObjectId, required: true },
+      content: { type: String, required: true },
+      createdAt: Number,
+    },
+  ],
+
+  likes: [
+    {
+      userId: { type: Schema.Types.ObjectId, required: true },
+      createdAt: Number,
     },
   ],
   tags: {
