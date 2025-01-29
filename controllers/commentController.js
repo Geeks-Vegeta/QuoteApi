@@ -3,7 +3,7 @@ const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
-const validator = require("../validator/quoteValidator");
+const validator = require("../validator/commentValidator");
 const commentService = require("../services/commentService");
 const quoteService = require("../services/quoteService");
 
@@ -18,6 +18,11 @@ exports.postComment = async (req, res, next) => {
   try {
     const { quoteId, comment } = req.body;
     const { user_id } = req.user;
+
+    const { error } = validator.commentValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
 
     if (!content || content.trim().length === 0) {
       throw new ClientError(400, "Comment content cannot be empty.");
@@ -49,6 +54,11 @@ exports.deleteComment = async (req, res, next) => {
   try {
     let { user_id } = req.user;
     let { quoteId, comment } = req.body;
+
+    const { error } = validator.commentValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
 
     const quote = await quoteService.getPostById(quoteId);
     if (!quote) {
