@@ -55,7 +55,7 @@ exports.createPost = async (req, res, next) => {
  */
 exports.deletePost = async (req, res, next) => {
   try {
-    let { id } = req.params;
+    let { id } = req.body;
     let { user_id } = req.user;
 
     const isValidPost = await quoteService.getPostById(id);
@@ -89,7 +89,7 @@ exports.deletePost = async (req, res, next) => {
  */
 exports.updatePost = async (req, res, next) => {
   try {
-    let { id } = req.params;
+    let { id } = req.body;
     let { user_id } = req.user;
 
     const isValidPost = await quoteService.getPostById(id);

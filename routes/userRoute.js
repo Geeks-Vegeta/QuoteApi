@@ -8,37 +8,37 @@ const { enableUserAgentTracking } = require("../middleware/user-agent");
 // user update profile
 userRoute.put(
   "/update",
-  [verifyUser, rateLimiter(5), validateHmac],
+  [verifyUser, rateLimiter(5), validateHmac, enableUserAgentTracking],
   userController.userUpdateProfile
 );
 userRoute.put(
   "/changepassword",
-  [verifyUser, rateLimiter(2), validateHmac],
+  [verifyUser, rateLimiter(2), validateHmac, enableUserAgentTracking],
   userController.changeUserPassword
 );
 userRoute.delete(
   "/archive",
-  [verifyUser, rateLimiter(1)],
+  [verifyUser, rateLimiter(1), enableUserAgentTracking],
   userController.archiveUser
 );
 userRoute.get(
   "/getUserId",
-  [verifyUser, rateLimiter(25)],
+  [verifyUser, rateLimiter(25), enableUserAgentTracking],
   userController.getUserId
 );
 userRoute.get(
   "/currentuser",
-  [verifyUser, rateLimiter(25)],
+  [verifyUser, rateLimiter(25), enableUserAgentTracking],
   userController.currentUser
 );
 userRoute.put(
   "/checkpassword",
-  [verifyUser, rateLimiter(5), validateHmac],
+  [verifyUser, rateLimiter(5), validateHmac, enableUserAgentTracking],
   userController.checkPassword
 );
 userRoute.get(
   "/getauser/:user_id",
-  [verifyUser, rateLimiter(15)],
+  [verifyUser, rateLimiter(15), enableUserAgentTracking],
   userController.getAUser
 );
 
