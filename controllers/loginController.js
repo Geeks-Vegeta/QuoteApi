@@ -67,3 +67,25 @@ exports.loginUser = async (req, res, next) => {
     throw new ServerError(500, "", err.message);
   }
 };
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.logoutUser = async (req, res, next) => {
+  try {
+    res.clearCookie("Authorization", { path: "/" });
+    return sendResponse(req, res, next, {
+      message: "logout",
+    });
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};

@@ -1,5 +1,4 @@
 const likeRoute = require("express").Router();
-
 const likeController = require("../controllers/likeController");
 
 const verifyUser = require("../verifyUser");
