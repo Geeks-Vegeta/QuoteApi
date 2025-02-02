@@ -10,11 +10,6 @@ commentRoute.post(
   [verifyUser, validateHmac, rateLimiter(5), enableUserAgentTracking],
   commentController.postComment
 );
-commentRoute.put(
-  "/updatecomment",
-  [verifyUser, validateHmac, rateLimiter(5), enableUserAgentTracking],
-  commentController.updateComment
-);
 commentRoute.delete(
   "/deletecomment",
   [verifyUser, validateHmac, rateLimiter(5), enableUserAgentTracking],

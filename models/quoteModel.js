@@ -10,7 +10,7 @@ const quoteSchema = mongoose.Schema({
   },
   comments: [
     {
-      userId: { type: Schema.Types.ObjectId, required: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, required: true },
       content: { type: String, required: true },
       createdAt: Number,
     },
@@ -18,7 +18,7 @@ const quoteSchema = mongoose.Schema({
 
   likes: [
     {
-      userId: { type: Schema.Types.ObjectId, required: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, required: true },
       createdAt: Number,
     },
   ],

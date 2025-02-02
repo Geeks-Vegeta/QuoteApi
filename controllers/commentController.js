@@ -1,4 +1,3 @@
-const sendResponse = require("../responses/send-response");
 const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
