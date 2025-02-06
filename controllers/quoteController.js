@@ -5,6 +5,8 @@ const logger = require("../utils/logger");
 const validator = require("../validator/quoteValidator");
 const quoteService = require("../services/quoteService");
 const Pagination = require("../utils/pagination");
+const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 
 /**
  *
@@ -37,7 +39,7 @@ exports.createPost = async (req, res, next) => {
     return sendResponse(req, res, next, {
       message: "Post created successfully",
     });
-  } catch (error) {
+  } catch (err) {
     if (err instanceof ClientError) {
       throw err;
     }
@@ -229,8 +231,76 @@ exports.getPosts = async (req, res, next) => {
 exports.getAllCurrentUserPosts = async (req, res, next) => {
   try {
     let { user_id } = req.user;
-    const allposts = await quoteService.userPosts(user_id);
-    return sendResponse(req, res, next, allposts);
+    const pageIndex = Number(req.query.pageIndex) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const offset = (pageIndex - 1) * pageSize;
+    const { sortColumn, sortDirection, filter } = req.body;
+    let sortData = {};
+    let filterData = {};
+    const pipeline = [];
+    let direction = sortDirection === "asc" ? 1 : -1;
+
+    // const { error } = validate.getColorValidator(req.body);
+    // if (error) {
+    //   throw new ClientError(400, error.message);
+    // }
+
+    switch (sortColumn) {
+      case "date":
+        sortData["createdAt"] = direction; // most recent
+        break;
+      case "likes":
+        sortData["likes"] = direction; // most popular
+        break;
+      default:
+        sortData["createdAt"] = -1;
+    }
+
+    if (Object.keys(filter).length > 0) {
+      if ("tag" in filter) {
+        filterData["tags"] = { $in: [filter.tag] }; // tags
+      }
+    }
+    filterData["user"] = new ObjectId(user_id);
+
+    pipeline.push({
+      $match: filterData,
+    });
+    pipeline.push({
+      $sort: sortData,
+    });
+    pipeline.push({
+      $skip: offset,
+    });
+    pipeline.push({ $limit: pageSize });
+    pipeline.push({
+      $project: {
+        _id: 1,
+        quote: 1,
+        tags: 1,
+        likes: {
+          $cond: {
+            if: { $gt: [{ $size: "$likes" }, 0] },
+            then: { $size: "$likes" },
+            else: 0,
+          },
+        },
+        comments: 1,
+      },
+    });
+    console.log(filterData);
+    const totalQuoteCount = await quoteService.quoteDocumentCount(filterData);
+    const quoteTagList = await quoteService.quoteAggregate(pipeline);
+
+    const pagination = new Pagination(
+      sortColumn,
+      sortDirection,
+      totalQuoteCount,
+      pageSize,
+      pageIndex
+    );
+
+    return sendResponse(req, res, next, quoteTagList, undefined, pagination);
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;

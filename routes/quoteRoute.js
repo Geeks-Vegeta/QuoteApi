@@ -20,7 +20,7 @@ quoteRoute.put(
   [verifyUser, validateHmac, rateLimiter(5), enableUserAgentTracking],
   quoteController.updatePost
 );
-quoteRoute.get(
+quoteRoute.post(
   "/allcurrentuserpost",
   [verifyUser, enableUserAgentTracking],
   quoteController.getAllCurrentUserPosts
