@@ -1,5 +1,6 @@
 const quoteRoute = require("express").Router();
 const quoteController = require("../controllers/quoteController");
+const { checkUserPost } = require("../controllers/quoteController");
 const verifyUser = require("../middleware/verifyUser");
 const { validateHmac } = require("../middleware/hmac-validator");
 const { rateLimiter } = require("../middleware/rate-limit");
@@ -12,12 +13,18 @@ quoteRoute.post(
 );
 quoteRoute.delete(
   "/delete",
-  [verifyUser, rateLimiter(10), enableUserAgentTracking],
+  [verifyUser, checkUserPost, rateLimiter(10), enableUserAgentTracking],
   quoteController.deletePost
 );
 quoteRoute.put(
   "/update",
-  [verifyUser, validateHmac, rateLimiter(5), enableUserAgentTracking],
+  [
+    verifyUser,
+    validateHmac,
+    checkUserPost,
+    rateLimiter(5),
+    enableUserAgentTracking,
+  ],
   quoteController.updatePost
 );
 quoteRoute.post(
@@ -26,9 +33,9 @@ quoteRoute.post(
   quoteController.getAllCurrentUserPosts
 );
 quoteRoute.get(
-  "/getpostbytitle",
+  "/getsinglequote",
   [verifyUser, enableUserAgentTracking],
-  quoteController.getPostByTitle
+  quoteController.getSingleQuote
 );
 quoteRoute.post(
   "/getposts",

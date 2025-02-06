@@ -24,6 +24,27 @@ async function checkQuoteExists(quote) {
 
 /**
  *
+ * @param {*} id
+ * @param {*} user_id
+ * @returns
+ */
+async function checkUserPost(id, user_id) {
+  try {
+    const post = await quoteModel.findOne({
+      _id: new ObjectId(id),
+      user: new ObjectId(user_id),
+    });
+    if (post == null) {
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+/**
+ *
  * @param {*} new_post
  */
 async function createPost(new_post) {
@@ -46,8 +67,24 @@ async function createPost(new_post) {
  */
 async function getPostById(id) {
   try {
-    const post = await quoteModel.findOne({ _id: new ObjectId(id) });
-    return post;
+    const post = await quoteModel.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(id),
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          quote: 1,
+          tags: 1,
+          likes: 1,
+          comments: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+    return post[0];
   } catch (err) {
     console.log(err);
   }
@@ -155,4 +192,5 @@ module.exports = {
   userPosts,
   quoteAggregate,
   quoteDocumentCount,
+  checkUserPost,
 };

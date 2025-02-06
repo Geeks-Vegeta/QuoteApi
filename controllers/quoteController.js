@@ -53,26 +53,63 @@ exports.createPost = async (req, res, next) => {
  * @param {*} req
  * @param {*} res
  * @param {*} next
+ */
+exports.checkUserPost = async (req, res, next) => {
+  try {
+    let { id } = req.body;
+    const { user_id } = req.user;
+    const userPost = await quoteService.checkUserPost(id, user_id);
+    if (!userPost) {
+      throw new ClientError(400, "This Quote does not exists");
+    }
+    next();
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
+exports.checkQuote = async (req, res, next) => {
+  try {
+    let { id } = req.query || req.body;
+    const userPost = await quoteService.getPostById(id);
+    if (!userPost) {
+      throw new ClientError(400, "This Quote does not exists");
+    }
+    next();
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
  * @returns
  */
 exports.deletePost = async (req, res, next) => {
   try {
     let { id } = req.body;
-    let { user_id } = req.user;
 
-    const isValidPost = await quoteService.getPostById(id);
-    if (!isValidPost) {
-      throw new ClientError(404, "This post does not exists");
-    }
-
-    if (user_id == isValidPost.user) {
-      await quoteService.deletePost(id);
-      return sendResponse(req, res, next, {
-        message: "Post deleted successfully",
-      });
-    } else {
-      throw new ClientError(404, "can't delete");
-    }
+    await quoteService.deletePost(id);
+    return sendResponse(req, res, next, {
+      message: "Post deleted successfully",
+    });
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
@@ -92,20 +129,15 @@ exports.deletePost = async (req, res, next) => {
 exports.updatePost = async (req, res, next) => {
   try {
     let { id } = req.body;
-    let { user_id } = req.user;
-
     const isValidPost = await quoteService.getPostById(id);
     if (!isValidPost) {
       throw new ClientError(404, "This post does not exists");
     }
-    if (user_id == isValidPost.user) {
-      await quoteService.updatePost(id, req.body);
-      return sendResponse(req, res, next, {
-        message: "Post updated successfully",
-      });
-    } else {
-      throw new ClientError(404, "can't update");
-    }
+
+    await quoteService.updatePost(id, req.body);
+    return sendResponse(req, res, next, {
+      message: "Post updated successfully",
+    });
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
@@ -288,7 +320,6 @@ exports.getAllCurrentUserPosts = async (req, res, next) => {
         comments: 1,
       },
     });
-    console.log(filterData);
     const totalQuoteCount = await quoteService.quoteDocumentCount(filterData);
     const quoteTagList = await quoteService.quoteAggregate(pipeline);
 
@@ -317,11 +348,14 @@ exports.getAllCurrentUserPosts = async (req, res, next) => {
  * @param {*} next
  * @returns
  */
-exports.getPostByTitle = async (req, res, next) => {
-  let { _id } = req.query;
+exports.getSingleQuote = async (req, res, next) => {
+  let { id } = req.query;
 
   try {
-    const post = await quoteService.getPostById(_id);
+    const post = await quoteService.getPostById(id);
+    if (!post) {
+      throw new ClientError(404, "This post does not exists");
+    }
     return sendResponse(req, res, next, post);
   } catch (err) {
     if (err instanceof ClientError) {
