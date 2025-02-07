@@ -23,7 +23,7 @@ exports.postComment = async (req, res, next) => {
       throw new ClientError(400, error.message);
     }
 
-    if (!content || content.trim().length === 0) {
+    if (!comment || comment.trim().length === 0) {
       throw new ClientError(400, "Comment content cannot be empty.");
     }
 
@@ -63,8 +63,10 @@ exports.deleteComment = async (req, res, next) => {
     if (!quote) {
       throw new ClientError(404, "This post does not exists");
     }
-    await commentService.addComment(quoteId, user_id, comment);
-    return sendResponse(req, res, next, { message: "commented successfully" });
+    await commentService.deleteComment(quoteId, user_id, comment);
+    return sendResponse(req, res, next, {
+      message: "comment deleted successfully",
+    });
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
