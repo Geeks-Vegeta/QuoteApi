@@ -9,7 +9,7 @@ likeRoute.post(
   [verifyUser, validateHmac, enableUserAgentTracking],
   likeController.likePost
 );
-likeRoute.delete(
+likeRoute.post(
   "/unlike",
   [verifyUser, validateHmac, enableUserAgentTracking],
   likeController.unLike

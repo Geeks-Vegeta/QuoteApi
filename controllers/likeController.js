@@ -15,18 +15,18 @@ const likeService = require("../services/likeService");
 exports.likePost = async (req, res, next) => {
   try {
     const { user_id } = req.user;
-    const { postId } = req.body;
+    const { quoteId } = req.body;
 
     const { error } = validator.likeValidator(req.body);
     if (error) {
       throw new ClientError(400, error.message);
     }
 
-    const post = await likeService.checkPostLikeExists(postId, user_id);
+    const post = await likeService.checkPostLikeExists(quoteId, user_id);
     if (post) {
       throw new ClientError(400, "Already Like");
     }
-    await likeService.giveLike(postId, user_id);
+    await likeService.giveLike(quoteId, user_id);
     return sendResponse(req, res, next, { message: "post liked" });
   } catch (err) {
     if (err instanceof ClientError) {
@@ -37,6 +37,13 @@ exports.likePost = async (req, res, next) => {
   }
 };
 
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
 exports.unLike = async (req, res, next) => {
   try {
     let { user_id } = req.user;
@@ -51,7 +58,7 @@ exports.unLike = async (req, res, next) => {
     if (!post) {
       throw new ClientError(400, "you did not like this post");
     }
-    await likeService.giveLike(postId, userId);
+    await likeService.giveLike(quoteId, userId);
     return sendResponse(req, res, next, { message: "post liked" });
   } catch (err) {
     if (err instanceof ClientError) {

@@ -212,7 +212,7 @@ exports.getPosts = async (req, res, next) => {
 
     if (Object.keys(filter).length > 0) {
       if ("tag" in filter) {
-        filterData["tags.value"] = filter.tag; // tags
+        filterData["tags"] = { $in: [filter.tag] }; // tags
       }
     }
     pipeline.push({

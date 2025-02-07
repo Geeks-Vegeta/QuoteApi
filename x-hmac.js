@@ -18,8 +18,7 @@ function generateHmac(message, algorithm = "sha256") {
 }
 
 const message = {
-  id: "67a4627726755e61defbe12f",
-  quote: "one life",
+  id: "67a5cd9ff164d6660b7f63e9",
 };
 const expectedHmac = generateHmac(JSON.stringify(message));
 console.log(expectedHmac);

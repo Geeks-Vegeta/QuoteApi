@@ -13,7 +13,13 @@ quoteRoute.post(
 );
 quoteRoute.delete(
   "/delete",
-  [verifyUser, checkUserPost, rateLimiter(10), enableUserAgentTracking],
+  [
+    verifyUser,
+    validateHmac,
+    checkUserPost,
+    rateLimiter(10),
+    enableUserAgentTracking,
+  ],
   quoteController.deletePost
 );
 quoteRoute.put(

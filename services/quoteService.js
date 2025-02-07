@@ -111,6 +111,7 @@ async function deletePost(id) {
  */
 async function updatePost(id, reqBody) {
   try {
+    delete reqBody.id;
     let post = await quoteModel.findByIdAndUpdate(
       { _id: new ObjectId(id) },
       { $set: reqBody },
