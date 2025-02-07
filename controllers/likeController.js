@@ -58,8 +58,8 @@ exports.unLike = async (req, res, next) => {
     if (!post) {
       throw new ClientError(400, "you did not like this post");
     }
-    await likeService.giveLike(quoteId, userId);
-    return sendResponse(req, res, next, { message: "post liked" });
+    await likeService.removeLike(quoteId, user_id);
+    return sendResponse(req, res, next, { message: "post unliked" });
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
