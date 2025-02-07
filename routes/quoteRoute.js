@@ -32,9 +32,9 @@ quoteRoute.post(
   [verifyUser, validateHmac, enableUserAgentTracking],
   quoteController.getAllCurrentUserPosts
 );
-quoteRoute.get(
+quoteRoute.post(
   "/getsinglequote",
-  [verifyUser, enableUserAgentTracking],
+  [verifyUser, validateHmac, enableUserAgentTracking],
   quoteController.getSingleQuote
 );
 quoteRoute.post(
