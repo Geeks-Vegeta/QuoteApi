@@ -29,7 +29,7 @@ quoteRoute.put(
 );
 quoteRoute.post(
   "/allcurrentuserpost",
-  [verifyUser, enableUserAgentTracking],
+  [verifyUser, validateHmac, enableUserAgentTracking],
   quoteController.getAllCurrentUserPosts
 );
 quoteRoute.get(

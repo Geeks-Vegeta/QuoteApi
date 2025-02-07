@@ -31,12 +31,24 @@ const quoteObj = Joi.object({
   tags: Joi.array(),
 });
 
+const quoteIdObj = Joi.object({
+  id: Joi.string().required(),
+});
+
 /**
  *
  * @param {*} reqBody
  */
 function quoteValidator(reqBody) {
   return quoteObj.validate(reqBody, JoiOptions);
+}
+
+/**
+ *
+ * @param {*} reqBody
+ */
+function quoteIdValidator(reqBody) {
+  return quoteIdObj.validate(reqBody, JoiOptions);
 }
 
 /**
@@ -50,4 +62,5 @@ function getQuoteValidator(reqBody) {
 module.exports = {
   quoteValidator,
   getQuoteValidator,
+  quoteIdValidator,
 };

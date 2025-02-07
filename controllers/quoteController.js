@@ -106,6 +106,11 @@ exports.deletePost = async (req, res, next) => {
   try {
     let { id } = req.body;
 
+    const { error } = validator.quoteIdValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
     await quoteService.deletePost(id);
     return sendResponse(req, res, next, {
       message: "Post deleted successfully",
@@ -156,7 +161,7 @@ exports.updatePost = async (req, res, next) => {
  */
 exports.getAllUserPosts = async (req, res, next) => {
   try {
-    let { id } = req.params;
+    let { id } = req.body;
     const userData = await quoteService.userPosts(id);
     return sendResponse(req, res, next, userData);
   } catch (err) {
@@ -349,9 +354,14 @@ exports.getAllCurrentUserPosts = async (req, res, next) => {
  * @returns
  */
 exports.getSingleQuote = async (req, res, next) => {
-  let { id } = req.query;
-
   try {
+    let { id } = req.body;
+
+    const { error } = validator.quoteIdValidator(req.body);
+    if (error) {
+      throw new ClientError(400, error.message);
+    }
+
     const post = await quoteService.getPostById(id);
     if (!post) {
       throw new ClientError(404, "This post does not exists");
