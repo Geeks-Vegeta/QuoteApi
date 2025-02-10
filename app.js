@@ -72,19 +72,19 @@ app.use("/comment", commentRoute);
 app.use("/like", likeRoute);
 app.use("/follow", followerRoute);
 
-const getRandomQuote = async () => {
-  const numItems = await scrapQuote.estimatedDocumentCount();
-  const rand = Math.floor(Math.random() * numItems);
-  const randomItem = await scrapQuote.findOne().skip(rand);
-  await todayquote.deleteMany({});
-  await todayquote.insertMany([randomItem]);
-};
+// const getRandomQuote = async () => {
+//   const numItems = await scrapQuote.estimatedDocumentCount();
+//   const rand = Math.floor(Math.random() * numItems);
+//   const randomItem = await scrapQuote.findOne().skip(rand);
+//   await todayquote.deleteMany({});
+//   await todayquote.insertMany([randomItem]);
+// };
 
 // 0 0 0 * * * at mid night 12 am
-cron.schedule("0 0 12 * *", () => {
-  getRandomQuote();
-  console.log("quote changed");
-});
+// cron.schedule("0 0 12 * *", () => {
+//   getRandomQuote();
+//   console.log("quote changed");
+// });
 
 app.get("/quoteofday", async (req, res) => {
   try {
