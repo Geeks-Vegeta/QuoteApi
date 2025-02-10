@@ -28,4 +28,18 @@ describe("Authentication Controller", () => {
   it("should login token", async () => {
     expect(global.accessToken).toBeDefined();
   });
+
+  it("should return unauthorized", async () => {
+    let registerData = {
+      username: "shreyashkjhgfgh",
+      email: "shreyas121@gmail.com",
+      password: "shreyas123",
+    };
+    const signature = generateHmac(JSON.stringify(registerData));
+    const response = await request(app)
+      .post("/register")
+      .send(registerData)
+      .set("x-signature", signature)
+      .expect(401);
+  });
 });
