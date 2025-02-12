@@ -1,0 +1,33 @@
+name: Test Quote API
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+
+      - name: "Create env file"
+      
+        run: |
+          touch .env
+          echo MONGODB_URI="mongodb+srv://shreyas:shreyas@cluster0.81mai.mongodb.net/Quotes?retryWrites=true&w=majority" >> .env
+          echo PORT=5000 >> .env
+          echo TOKEN_SECRET="asjfhkjsdhfusdhfjkewrkjwehrkjshf" >> .env
+          echo HMAC_SECRET_KEY="986de61a-6e4c-4d36-b700-0c8c24e78e4e-52a728b5-3a4c-4875-99ff-d67312c31a88" >>.env
+          cat .env
+
+      - name: npm install, build, and test
+        run: |
+          npm install
+          npm run build --if-present
+          npm test
