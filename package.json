@@ -4,7 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --testTimeout=10000 --detectOpenHandles --forceExit --maxWorkers=1"
+    "test": "cross-env NODE_ENV=test jest"
+  },
+  "jest": {
+    "testSequencer": "./CustomTestSequencer.js",
+    "testTimeout": 10000,
+    "detectOpenHandles": true,
+    "forceExit": true,
+    "maxWorkers": 1
   },
   "keywords": [],
   "author": "",

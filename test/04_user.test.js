@@ -9,8 +9,8 @@ describe("Authentication Controller", () => {
     // Simulate login to get the tokens
 
     let data = {
-      email: "shreyas@gmail.com",
-      password: "shreyas111",
+      email: "shreyas121@gmail.com",
+      password: "shreyas123",
     };
     const signature = await generateHmac(JSON.stringify(data));
     const response = await request(app)
@@ -29,6 +29,13 @@ describe("Authentication Controller", () => {
     it("should return user id", async () => {
       const response = await request(app)
         .get("/user/getUserId")
+        .set("Authorization", `Bearer ${global.accessToken}`)
+        .expect(200);
+    });
+
+    it("delete user all data and user itself", async () => {
+      const response = await request(app)
+        .delete("/user/deletedata")
         .set("Authorization", `Bearer ${global.accessToken}`)
         .expect(200);
     });

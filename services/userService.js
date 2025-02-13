@@ -1,3 +1,4 @@
+const quoteModel = require("../models/quoteModel");
 const userModel = require("../models/userModel");
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;
@@ -112,11 +113,25 @@ async function archiveUserData(user_id) {
   }
 }
 
+/**
+ *
+ * @param {*} userId
+ */
+async function deleteAllData(userId) {
+  try {
+    await userModel.findByIdAndDelete({ _id: new ObjectId(userId) });
+    await quoteModel.deleteMany({ user: new ObjectId(userId) });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
   checkEmail,
   getUserByEmail,
   updateUser,
   getUserById,
   archiveUserData,
+  deleteAllData,
   getUserPassword,
 };

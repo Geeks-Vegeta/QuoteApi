@@ -205,3 +205,25 @@ exports.checkPassword = async (req, res, next) => {
     throw new ServerError(500, "", err.message);
   }
 };
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
+exports.deleteAllUserData = async (req, res, next) => {
+  try {
+    let { user_id } = req.user;
+    await userService.deleteAllData(user_id);
+    return sendResponse(req, res, next, {
+      message: "all data removed successfully",
+    });
+  } catch (err) {
+    if (err instanceof ClientError) {
+      throw err;
+    }
+    logger.exception(err);
+    throw new ServerError(500, "", err.message);
+  }
+};

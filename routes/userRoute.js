@@ -42,4 +42,10 @@ userRoute.get(
   userController.getAUser
 );
 
+userRoute.delete(
+  "/deletedata",
+  [verifyUser, rateLimiter(1), enableUserAgentTracking],
+  userController.deleteAllUserData
+);
+
 module.exports = userRoute;
