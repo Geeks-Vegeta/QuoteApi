@@ -35,5 +35,6 @@ async function enableUserAgentTracking(req, res, next) {
       sourcePort: sourcePort,
     };
   }
+
   next();
 }

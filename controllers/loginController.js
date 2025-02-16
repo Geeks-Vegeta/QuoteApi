@@ -1,8 +1,10 @@
 const jwt = require("../helper/jwt");
 const bcrypt = require("../helper/bcrypt");
 const userService = require("../services/userService");
+const sessionService = require("../services/sessionService");
 const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
+const moment = require("moment");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
 const validator = require("../validator/loginValidator");
@@ -22,6 +24,23 @@ function getUserData(user) {
 
 /**
  *
+ * @param {*} user_id
+ * @param {*} useragent
+ * @param {*} token
+ * @returns
+ */
+function createSessionPayload(user_id, useragent, token) {
+  return {
+    user: user_id,
+    valid: true,
+    useragent: useragent,
+    token: token,
+    createdAt: moment().unix(),
+  };
+}
+
+/**
+ *
  * @param {*} req
  * @param {*} res
  * @param {*} next
@@ -30,7 +49,6 @@ function getUserData(user) {
 exports.loginUser = async (req, res, next) => {
   try {
     let { email, password } = req.body;
-
     const { error } = validator.loginValidator(req.body);
     if (error) {
       throw new ClientError(400, error.message);
@@ -56,6 +74,13 @@ exports.loginUser = async (req, res, next) => {
     let userData = getUserData(user);
 
     const token = await jwt.generateToken(userData);
+    // add here session and its token
+    const sessionPayload = createSessionPayload(
+      userData.user_id,
+      req.useragent,
+      token
+    );
+    await sessionService.addSession(sessionPayload);
     return sendResponse(req, res, next, {
       token: token,
     });
