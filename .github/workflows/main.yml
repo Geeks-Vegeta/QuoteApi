@@ -52,4 +52,4 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf reports
+          rm -rf index.html
