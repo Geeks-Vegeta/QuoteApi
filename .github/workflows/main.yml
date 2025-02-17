@@ -34,14 +34,12 @@ jobs:
 
       - name: Create gh-pages branch and deploy report
         run: |
-          # Create and switch to gh-pages branch
-          git checkout --orphan gh-pages
 
           # Make sure the reports directory exists (if it doesn't, create it)
           mkdir -p reports
 
           # Copy the generated index.html to the reports folder
-          cp -r ../reports/index.html ./reports/
+          cp reports/index.html ./reports/index.html
 
           # Configure Git for GitHub Pages
           git config --global user.name "github-actions"
