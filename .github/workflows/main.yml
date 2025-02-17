@@ -31,3 +31,25 @@ jobs:
           npm install
           npm run build --if-present
           npm test
+
+      - name: Create gh-pages branch and deploy report
+        run: |
+          # Create and switch to gh-pages branch
+          git checkout --orphan gh-pages
+
+          # Create the necessary directories and move the report there
+          mkdir -p reports
+          mv reports/index.html ./reports/
+
+          # Configure Git for GitHub Pages
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          # Commit and push the HTML report to the gh-pages branch
+          git add reports/index.html
+          git commit -m "Deploy Jest test HTML report to GitHub Pages"
+          git push --force origin gh-pages
+
+      - name: Clean up
+        run: |
+          rm -rf reports

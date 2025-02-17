@@ -12,7 +12,20 @@
     "testTimeout": 10000,
     "detectOpenHandles": true,
     "forceExit": true,
-    "maxWorkers": 1
+    "maxWorkers": 1,
+    "reporters": [
+      "default",
+      [
+        "./node_modules/jest-html-reporter",
+        {
+          "pageTitle": "Quote API Test Report",
+          "outputPath": "./reports/index.html",
+          "includeFailureMsg": true,
+          "includeObsoleteSnapshots": true,
+          "logo": "https://s3.ap-south-1.amazonaws.com/myaahi.com/MyAahiWebsite/Myaahilogo.jpeg"
+        }
+      ]
+    ]
   },
   "keywords": [],
   "author": "",
