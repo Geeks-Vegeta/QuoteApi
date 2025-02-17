@@ -41,7 +41,7 @@ jobs:
           mkdir -p reports
 
           # Copy the generated index.html to the reports folder
-          cp -r reports/index.html ./reports/
+          cp -r ../reports/index.html ./reports/
 
           # Configure Git for GitHub Pages
           git config --global user.name "github-actions"
