@@ -39,14 +39,14 @@ jobs:
           mkdir -p reports
 
           # Copy the generated index.html to the reports folder
-          cp reports/index.html
+          cp reports/index.html ./index.html
 
           # Configure Git for GitHub Pages
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
           # Commit and push the HTML report to the gh-pages branch
-          git add reports/index.html
+          git add index.html
           git commit -m "Deploy Jest test HTML report to GitHub Pages"
           git push --force origin gh-pages
 
