@@ -53,6 +53,7 @@ async function getUserSession(req, res, next) {
         useragent: 1,
         createdAt: 1,
         token: 1,
+        valid: 1,
       },
     });
     pipeline.push({
