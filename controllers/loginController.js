@@ -4,7 +4,6 @@ const userService = require("../services/userService");
 const sessionService = require("../services/sessionService");
 const ClientError = require("../responses/client-error");
 const ServerError = require("../responses/server-error");
-const moment = require("moment");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
 const validator = require("../validator/loginValidator");
@@ -35,7 +34,6 @@ function createSessionPayload(user_id, useragent, token) {
     valid: true,
     useragent: useragent,
     token: token,
-    createdAt: moment().unix(),
   };
 }
 

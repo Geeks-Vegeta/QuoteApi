@@ -28,7 +28,7 @@ const todayquote = require("./models/todayModel");
 const scrapQuote = require("./models/ScrapQuoteModel");
 const { validateHmac } = require("./middleware/hmac-validator");
 const { rateLimiter } = require("./middleware/rate-limit");
-const cron = require("node-cron");
+const sessionRoute = require("./routes/sessionRoute");
 
 //configurations
 mongoClient.connect();
@@ -68,6 +68,7 @@ app.use("/register", [validateHmac, rateLimiter(5)], registerRoute);
 app.use("/login", [validateHmac, rateLimiter(5)], loginRoute);
 app.use("/quote", quoteRoute);
 app.use("/user", userRoute);
+app.use("/session", sessionRoute);
 app.use("/comment", commentRoute);
 app.use("/like", likeRoute);
 app.use("/follow", followerRoute);
