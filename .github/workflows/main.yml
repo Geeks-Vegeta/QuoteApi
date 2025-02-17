@@ -37,9 +37,11 @@ jobs:
           # Create and switch to gh-pages branch
           git checkout --orphan gh-pages
 
-          # Create the necessary directories and move the report there
+          # Make sure the reports directory exists (if it doesn't, create it)
           mkdir -p reports
-          mv reports/index.html ./reports/
+
+          # Copy the generated index.html to the reports folder
+          cp -r reports/index.html ./reports/
 
           # Configure Git for GitHub Pages
           git config --global user.name "github-actions"
