@@ -48,7 +48,7 @@ jobs:
           # Commit and push the HTML report to the main branch
           git add index.html
           git commit -m "Deploy Jest test HTML report to GitHub Pages"
-          git push --force origin main
+          git push https://x-access-token:${{ secrets.TOKEN }}@github.com/Geeks-Vegeta/QuoteApi.git main
 
       - name: Clean up
         run: |
