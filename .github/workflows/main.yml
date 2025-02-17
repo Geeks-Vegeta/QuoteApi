@@ -45,10 +45,10 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          # Commit and push the HTML report to the gh-pages branch
+          # Commit and push the HTML report to the main branch
           git add index.html
           git commit -m "Deploy Jest test HTML report to GitHub Pages"
-          git push --force origin gh-pages
+          git push --force origin main
 
       - name: Clean up
         run: |
