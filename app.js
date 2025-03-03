@@ -25,13 +25,13 @@ const commentRoute = require("./routes/commentRoute");
 const likeRoute = require("./routes/likeRoute");
 const followerRoute = require("./routes/followerRoute");
 const todayquote = require("./models/todayModel");
-const scrapQuote = require("./models/ScrapQuoteModel");
 const { validateHmac } = require("./middleware/hmac-validator");
 const { rateLimiter } = require("./middleware/rate-limit");
 const sessionRoute = require("./routes/sessionRoute");
 
 //configurations
 mongoClient.connect();
+require("./redis-connection/connection_redis");
 
 // middleware
 morgan.token("time", (req) => {

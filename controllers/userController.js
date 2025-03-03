@@ -6,6 +6,7 @@ const ServerError = require("../responses/server-error");
 const sendResponse = require("../responses/send-response");
 const logger = require("../utils/logger");
 const validator = require("../validator/userValidator");
+const { client } = require("../redis-connection/connection_redis");
 
 /**
  *
@@ -131,8 +132,14 @@ exports.currentUser = async (req, res, next) => {
   try {
     let { user_id } = req.user;
 
-    const userdata = await userService.getUserById(user_id);
-    return sendResponse(req, res, next, userdata);
+    let user_data = await client.get(`user_${user_id}`);
+    if (user_data !== null) {
+      return sendResponse(req, res, next, JSON.parse(user_data));
+    } else {
+      const userdata = await userService.getUserById(user_id);
+      client.setEx(`user_${user_id}`, 3600, JSON.stringify(userdata));
+      return sendResponse(req, res, next, userdata);
+    }
   } catch (err) {
     if (err instanceof ClientError) {
       throw err;
